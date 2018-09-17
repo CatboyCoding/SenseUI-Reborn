@@ -1,8 +1,12 @@
 # SenseUI
 Immideate-Mode GUI for Aimware.NET
 
+* [Tables](#tables)
+* [Methods](#methods)
+* [Example](#example-script)
+
 # Documentation:
-#### Tables:
+#### Tables
 * **SenseUI.Keys** - Table that contains all keycodes. __*Example:*__ "__\\__" key equals to "backslash". __KEEP IN MIND:__ "__END__" key is equals to "__end_key__"!
 
 #### Methods
