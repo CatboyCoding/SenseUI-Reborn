@@ -104,4 +104,4 @@ end
 RunScript( "senseui.lua" );
 
 -- Register draw callback
-callbacks.Register( "Draw", "suitest", draw_callback );```
+callbacks.Register( "Draw", "suitest", draw_callback );
