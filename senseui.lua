@@ -72,6 +72,13 @@ local function gs_clamp( val, min, max )
 	return val;
 end
 
+local function gs_newelement()
+	local wnd = gs_windows[gs_curwindow];
+	local group = gs_groups[gs_curgroup];
+
+	return wnd, group;
+end
+
 -- Begins window
 local function gs_beginwindow( id, x, y, w, h )
 	-- Check values
@@ -517,20 +524,22 @@ local function gs_endgroup(  )
 		group.x = 25;
 	end
 
-	if group.w < group.highest_w + 50 then
-		group.w = group.highest_w + 50;
-	end
-
-	if group.h < group.highest_h + 25 then
-		group.h = group.highest_h + 25;
-	end
-
 	if group.y < 25 then
 		group.y = 25;
 	end
 
-	if group.h + 15 < group.x + group.nextline_offset then
-		group.h = group.nextline_offset + 15;
+	if group.is_sizeable then
+		if group.w < group.highest_w + 50 then
+			group.w = group.highest_w + 50;
+		end
+
+		if group.h < group.highest_h + 25 then
+			group.h = group.highest_h + 25;
+		end
+
+		if group.h + 15 < group.x + group.nextline_offset then
+			group.h = group.nextline_offset + 15;
+		end
 	end
 
 	gs_groups[gs_curgroup] = group;
@@ -561,8 +570,7 @@ local function gs_setgroupsizeable( val )
 end
 
 local function gs_checkbox( title, var )
-	local wnd = gs_windows[gs_curwindow];
-	local group = gs_groups[gs_curgroup];
+	local wnd, group = gs_newelement();
 
 	local textw, texth = draw.GetTextSize( title );
 	local x, y = wnd.x + group.x + 10, wnd.y + group.y + group.nextline_offset;
@@ -599,8 +607,7 @@ local function gs_checkbox( title, var )
 end
 
 local function gs_button( title, w, h )
-	local wnd = gs_windows[gs_curwindow];
-	local group = gs_groups[gs_curgroup];
+	local wnd, group = gs_newelement();
 
 	local textw, texth = draw.GetTextSize( title );
 	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
@@ -642,8 +649,7 @@ local function gs_button( title, w, h )
 end
 
 local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons, var )
-	local wnd = gs_windows[gs_curwindow];
-	local group = gs_groups[gs_curgroup];
+	local wnd, group = gs_newelement();
 
 	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
 	local textw, texth = 0, 0;
@@ -728,6 +734,31 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 	return var;
 end
 
+local function gs_label( text, is_alt )
+	local wnd, group = gs_newelement();
+
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local textw, texth = draw.GetTextSize( text );
+	local r, g, b = 181, 181, 181;
+
+	if is_alt then
+		r, g, b = 255, 235, 153;
+	end
+
+	render.text( x, y, text, { r, g, b, wnd.alpha } );
+
+	gs_groups[gs_curgroup].is_nextline = true;
+	gs_groups[gs_curgroup].nextline_offset = gs_groups[gs_curgroup].nextline_offset + texth + 5;
+
+	if group.highest_w < textw then
+		gs_groups[gs_curgroup].highest_w = textw;
+	end
+
+	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
+		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
+	end
+end
+
 SenseUI.Keys = {
 	esc = 27, f1 = 112, f2 = 113, f3 = 114, f4 = 115, f5 = 116,
 	f6 = 117, f7 = 118, f8 = 119, f9 = 120, f10 = 121, f11 = 122,
@@ -762,3 +793,4 @@ SenseUI.SetGroupMoveable = gs_setgroupmoveable;
 SenseUI.SetGroupSizeable = gs_setgroupsizeable;
 SenseUI.Button = gs_button;
 SenseUI.Slider = gs_slider;
+SenseUI.Label = gs_label;
