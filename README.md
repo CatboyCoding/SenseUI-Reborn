@@ -1,9 +1,21 @@
 # SenseUI
 Immideate-Mode GUI for Aimware.NET
 
+![Example script](https://cdn.discordapp.com/attachments/491234984300904468/491548645360140299/unknown.png)
+
 * [Tables](#tables)
 * [Methods](#methods)
 * [Example](#example-script)
+
+#### To do
+1. Drowdown
+1. Multiselect
+1. Keybind
+1. Vertical tabs
+1. Horizontal tabs
+1. Color picker
+1. Scrolling
+1. List
 
 # Documentation:
 #### Tables
@@ -57,55 +69,75 @@ Immideate-Mode GUI for Aimware.NET
     * *[bool]* **show_buttons**: show **+** and **-** buttons (at left and right of slider).
     * *[number]* **var**: variable to get value.
     * _**Returns:**_ number (edited var)
+* *void* **SenseUI.Label** ( text, is_alternative ) - Draws basic label
+    * *[text]* **text**: text to write.
+    * *[bool]* **is_alternative**: **true** makes text yellow.
 
 #### Example script
 ```lua
-local fakelags = gui.GetValue( "msc_fakelag_enable" ); -- Fakelag checkbox
-local pingspike = gui.GetValue( "msc_fakelatency_enable" ); -- Fakelatency checkbox
-local speedhack = gui.GetValue( "msc_speedhack_enable" ); -- Speedhack checkbox
-local slider = 50;
-local slider2 = 0;
+local show_group = true;
+local this_sizeable = false;
+local window_moveable = true;
+local show_gradient = true;
+local button_toggler = false;
+local ui_rate = 10;
+local slider_showpm = false;
+local funny_sliders = 0;
 
 function draw_callback()
-	-- Update values
-	fakelags = gui.GetValue( "msc_fakelag_enable" );
-	pingspike = gui.GetValue( "msc_fakelatency_enable" );
-	speedhack = gui.GetValue( "msc_speedhack_enable" );
-	slider2 = gui.GetValue( "msc_fakelatency_amount" ) * 1000;
-
-	-- Draw window. ID = "wnd1", X = 50, Y = 50, WIDTH = 400, HEIGHT = 400; IF statement is needed to prevent exceptions when drawing elements...
-	if SenseUI.BeginWindow( "wnd1", 50, 50, 400, 400 ) then
-		SenseUI.AddGradient(); -- Add gradient line to top of window
-		SenseUI.SetWindowMoveable( true ); -- Set window is_moveable option. When enabled, you can drag window when holding key at the top of window.
-		SenseUI.SetWindowOpenKey( SenseUI.Keys.delete ); -- Set open key. If nil, then you won't be able to toggle window.
-		SenseUI.SetWindowSizeable( true ); -- Adds little triangle at the right bottom corner. When holding and dragging, you can change size of window.
-
-		-- Draw group. ID = "grp1", TITLE = "Some group", X (in window) = 25, Y = 25, WIDTH = 300, HEIGHT = 200
-		if SenseUI.BeginGroup( "grp1", "Some group", 25, 25, 300, 200 ) then
-			SenseUI.SetGroupMoveable( true ); -- Same as in window, but you cannot move group outside the window.
-			SenseUI.SetGroupSizeable( true ); -- Same as in window, but you cannot make group bigger than window (relative to X and Y of group)
-
-			fakelags = SenseUI.Checkbox( "Fake-lags", fakelags ); -- Draws checkbox "Fake-lags", changed value is returned when function finishes.
-			pingspike = SenseUI.Checkbox( "Ping spike", pingspike ); -- Draws second checkbox.
-			speedhack = SenseUI.Button( "Speedhack", 100, 25 ); -- Draws button "Speedhack". When holding, returns TRUE; 100 is width and 25 is height
-			slider = SenseUI.Slider( nil, 0, 100, "%", "Auto", "HP + 25", true, slider ); -- Test slider from 0 to 100. When 0, displays "Auto"; when 100 - "HP + 25". Shows -/+ buttons
-			slider2 = SenseUI.Slider( "Ping spike", 0, 1000, "ms", "Off", nil, false, slider2 ); -- Ping spike slider (from 0 to 1000). When 0, displays "Off".
-
-			SenseUI.EndGroup(); -- End group, needed to finish and clamp some vars
+	if SenseUI.BeginWindow( "wnd1", 50, 50, 485, 400) then
+		if show_gradient then
+			SenseUI.AddGradient();
 		end
 
-		SenseUI.EndWindow(); -- End window, needed to prevent issues with other windows
+		SenseUI.SetWindowMoveable( window_moveable );
+		SenseUI.SetWindowOpenKey( SenseUI.Keys.delete );
+
+		if SenseUI.BeginGroup( "grp1", "Example group 1", 25, 25, 205, 215 ) then
+			show_group = SenseUI.Checkbox( "Show second group", show_group );
+			SenseUI.Label( "This is normal label", false );
+			SenseUI.Label( "This is alt label", true );
+			button_toggler = SenseUI.Button( "Click me!", 120, 25 );
+
+			if button_toggler then
+				SenseUI.Label( "You are holding button!" );
+			end
+
+			slider_showpm = SenseUI.Checkbox( "Show -/+ buttons on slider", slider_showpm );
+			ui_rate = SenseUI.Slider( "How cool is this UI?", 0, 10, nil, "Poor", "Amazing", slider_showpm, ui_rate );
+			SenseUI.Label( "Your rate is: " ..  ui_rate .. "/10!" );
+
+			SenseUI.Label( "Funny thing below" );
+			funny_sliders = SenseUI.Slider( nil, 0, 100, nil, nil, nil, false, funny_sliders );
+			funny_sliders = 100 - SenseUI.Slider(  nil, 0, 100, nil, nil, nil, false, 100 - funny_sliders );
+
+			SenseUI.EndGroup();
+		end
+
+		if show_group then
+			if SenseUI.BeginGroup( "grp2", "Example group 2", 255, 25, 205, 215 ) then
+				SenseUI.SetGroupSizeable( this_sizeable );
+
+				this_sizeable = SenseUI.Checkbox( "Make this sizeable", this_sizeable );
+				show_gradient = SenseUI.Checkbox( "Show gradient", show_gradient );
+
+				SenseUI.EndGroup();
+			end
+		end
+
+		if SenseUI.BeginGroup( "grp3", "About	 [ SenseUI by Ruppet ]", 25, 265, 435, 110 ) then
+			SenseUI.Label( "Current progress: ", true );
+			SenseUI.Label( "Controls - Checkbox, Button, Slider, Label" );
+			SenseUI.Label( "Containers - Window, Group" );
+			SenseUI.Label( "TODO:", true );
+			SenseUI.Label( "Dropdown, Multiselect, Keybind, Tabs, ... [ more on github ]" );
+
+			SenseUI.EndGroup();
+		end
+
+		SenseUI.EndWindow();
 	end
-	
-	-- Update values
-	gui.SetValue( "msc_fakelag_enable", fakelags );
-	gui.SetValue( "msc_fakelatency_enable", pingspike );
-	gui.SetValue( "msc_speedhack_enable", speedhack );
-	gui.SetValue( "msc_fakelatency_amount", slider2 / 1000 );
 end
 
--- Run script so SenseUI table will be global.
 RunScript( "senseui.lua" );
-
--- Register draw callback
 callbacks.Register( "Draw", "suitest", draw_callback );
