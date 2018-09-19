@@ -1,7 +1,7 @@
 # SenseUI
 Immideate-Mode GUI for Aimware.NET
 
-![Example script](https://cdn.discordapp.com/attachments/491234984300904468/491548645360140299/unknown.png)
+![Example script](https://cdn.discordapp.com/attachments/443040968124399619/491895506772164628/unknown.png)
 
 * [Tables](#tables)
 * [Methods](#methods)
@@ -10,7 +10,6 @@ Immideate-Mode GUI for Aimware.NET
 #### To do
 1. Drowdown
 1. Multiselect
-1. Keybind
 1. Vertical tabs
 1. Horizontal tabs
 1. Color picker
@@ -18,8 +17,22 @@ Immideate-Mode GUI for Aimware.NET
 1. List
 
 # Documentation:
+#### How to load
+1. Create script "SenseUI.lua" in Aimware window
+1. Load it (it will be colored in menu, also it will write to console that load is success)
+1. Get some script (example one, or create your own)
+1. Load script
+1. Profit
+
+#### How to make own script
+1. Read documentation
+1. Follow example code
+1. Explore SenseUI.lua
+1. Profit
+
 #### Tables
 * **SenseUI.Keys** - Table that contains all keycodes. __*Example:*__ "__\\__" key equals to "backslash". __KEEP IN MIND:__ "__END__" key is equals to "__end_key__"!
+* **SenseUI.KeyDetection** - Table that contains key detection methods. Always on - key will be always ON; On hotkey - key will be ON if user hold it, and OFF if he doesn't; Toggle - key will be toggled ON if it's OFF, and toggled OFF if it's ON; Off hotkey - key will be OFF if user hold it, and ON if he doesn't.
 
 #### Methods
 * *bool* **SenseUI.BeginWindow** ( id, x, y, width, height ) - Draws basic window
@@ -72,9 +85,21 @@ Immideate-Mode GUI for Aimware.NET
 * *void* **SenseUI.Label** ( text, is_alternative ) - Draws basic label
     * *[text]* **text**: text to write.
     * *[bool]* **is_alternative**: **true** makes text yellow.
+* *void* **SenseUI.Bind** ( id, can_change_detection, var, key_held, detection_method ) - Draws basic keybind after latest element
+    * *[any]* **id**: bind's id.
+    * *[bool]* **can_change_detection**: when **true**, right clicking on bind will show up key detection method selection.
+    * *[int]* **var**: variable to store key.
+    * *[bool]* **key_held**: variable to store if key held (needed for toggle).
+    * *[int]* **detection_method**: variable to store detection method; default is 2 (SenseUI.KeyDetection.on_hotkey).
+    * _**Returns:**_ int (selected key), bool (is key held), int (detection method)
 
 #### Example script
 ```lua
+-- Check if SenseUI was loaded.
+if SenseUI == nil then
+	RunScript( "senseui.lua" );
+end
+
 local show_group = true;
 local this_sizeable = false;
 local window_moveable = true;
@@ -83,6 +108,16 @@ local button_toggler = false;
 local ui_rate = 10;
 local slider_showpm = false;
 local funny_sliders = 0;
+local draw_texture = false;
+local bind_button = SenseUI.Keys.home;
+local bind_active = false;
+local bind_detect = SenseUI.KeyDetection.on_hotkey;
+
+local window_bkey = SenseUI.Keys.delete;
+local window_bact = false;
+local window_bdet = SenseUI.KeyDetection.on_hotkey;
+
+SenseUI.EnableLogs = true;
 
 function draw_callback()
 	if SenseUI.BeginWindow( "wnd1", 50, 50, 485, 400) then
@@ -90,8 +125,9 @@ function draw_callback()
 			SenseUI.AddGradient();
 		end
 
+		SenseUI.SetWindowDrawTexture( draw_texture ); -- Makes huge fps drop. Not recommended to use yet
 		SenseUI.SetWindowMoveable( window_moveable );
-		SenseUI.SetWindowOpenKey( SenseUI.Keys.delete );
+		SenseUI.SetWindowOpenKey( window_bkey );
 
 		if SenseUI.BeginGroup( "grp1", "Example group 1", 25, 25, 205, 215 ) then
 			show_group = SenseUI.Checkbox( "Show second group", show_group );
@@ -120,6 +156,16 @@ function draw_callback()
 
 				this_sizeable = SenseUI.Checkbox( "Make this sizeable", this_sizeable );
 				show_gradient = SenseUI.Checkbox( "Show gradient", show_gradient );
+				draw_texture = SenseUI.Checkbox( "Draw window texture", draw_texture );
+
+				local txt = "off";
+				if bind_active then txt = "on" end;
+
+				SenseUI.Label( "Example bind: " .. txt );
+				bind_button, bind_active, bind_detect = SenseUI.Bind( "bind1", true, bind_button, bind_active, bind_detect );
+
+				SenseUI.Label( "Menu key" );
+				window_bkey, window_bact, window_bdet = SenseUI.Bind( "wndToggle", false, window_bkey, window_bact, window_bdet );
 
 				SenseUI.EndGroup();
 			end
@@ -127,10 +173,10 @@ function draw_callback()
 
 		if SenseUI.BeginGroup( "grp3", "About	 [ SenseUI by Ruppet ]", 25, 265, 435, 110 ) then
 			SenseUI.Label( "Current progress: ", true );
-			SenseUI.Label( "Controls - Checkbox, Button, Slider, Label" );
+			SenseUI.Label( "Controls - Checkbox, Button, Slider, Label, Keybind" );
 			SenseUI.Label( "Containers - Window, Group" );
 			SenseUI.Label( "TODO:", true );
-			SenseUI.Label( "Dropdown, Multiselect, Keybind, Tabs, ... [ more on github ]" );
+			SenseUI.Label( "[ more on github ]" );
 
 			SenseUI.EndGroup();
 		end
@@ -139,5 +185,4 @@ function draw_callback()
 	end
 end
 
-RunScript( "senseui.lua" );
 callbacks.Register( "Draw", "suitest", draw_callback );
