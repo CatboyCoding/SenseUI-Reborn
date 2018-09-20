@@ -5,14 +5,25 @@
 ]]
 
 SenseUI = {};
+SenseUI.EnableLogs = false;
 
-local gs_windows = {};
-local gs_groups = {};
-local gs_curwindow = "";
-local gs_curgroup = "";
+local gs_windows = {};		-- Contains all windows
+local gs_groups = {};		-- Contains all groups
+local gs_curwindow = "";	-- Current window ID
+local gs_curgroup = "";		-- Current group ID
 
-local gs_mx = 0;
-local gs_my = 0;
+local gs_curchild = {
+	id = "",
+	x = 0,
+	y = 0,
+	elements = {},
+	selected = {},
+	multiselect = false,
+	last_id = ""
+};
+
+local gs_mx = 0;	-- Mouse X
+local gs_my = 0;	-- Mouse Y
 
 -- CUSTOM DRAWING --
 local render = {};
@@ -65,6 +76,14 @@ local function gs_inbounds( a, b, mina, minb, maxa, maxb )
 	end
 end
 
+-- Just checks if logs are enabled
+local function gs_log( text )
+	if SenseUI.EnableLogs then
+		print( text );
+	end
+end
+
+-- Clamps value
 local function gs_clamp( val, min, max )
 	if val < min then return min end
 	if val > max then return max end
@@ -72,6 +91,7 @@ local function gs_clamp( val, min, max )
 	return val;
 end
 
+-- I'm too lazy to do shit what I moved into this func
 local function gs_newelement()
 	local wnd = gs_windows[gs_curwindow];
 	local group = gs_groups[gs_curgroup];
@@ -111,7 +131,8 @@ local function gs_beginwindow( id, x, y, w, h )
 			-- Settings
 			is_movable = false,
 			is_sizeable = false,
-			open_key = nil
+			open_key = nil,
+			draw_texture = false
 		};
 
 		wnd.x = x;
@@ -121,7 +142,7 @@ local function gs_beginwindow( id, x, y, w, h )
 
 		gs_windows[id] = wnd;
 
-		print( "Window " .. id .. " has been created" );
+		gs_log( "Window " .. id .. " has been created" );
 	end
 
 	gs_curwindow = id;
@@ -131,24 +152,27 @@ local function gs_beginwindow( id, x, y, w, h )
 		-- Window toggle
 		if input.IsButtonPressed( wnd.open_key ) then
 			wnd.is_opened = not wnd.is_opened;
-			print( "Window " .. id .. " has been toggled" );
+			gs_log( "Window " .. id .. " has been toggled" );
 		end
 	end
 
 	-- Close animation
+	local fade_factor = ((1.0 / 0.15) * globals.FrameTime()) * 255; -- Animation takes 150ms to finish. This helps to make it look the same on 200 fps and on 30fps
+
 	if not wnd.is_opened and wnd.alpha ~= 0 then
-		wnd.alpha = wnd.alpha - 15;
+		wnd.alpha = gs_clamp( wnd.alpha - fade_factor, 0, 255 );
 	end
 
 	-- Open animation
 	if wnd.is_opened and wnd.alpha ~= 255 then
-		wnd.alpha = wnd.alpha + 15;
+		wnd.alpha = gs_clamp( wnd.alpha + fade_factor, 0, 255 );
 	end
 
 	gs_windows[id] = wnd;
 
 	-- Check if window opened
 	if not wnd.is_opened and wnd.alpha == 0 then
+		gs_curchild.id = "";
 		return false;
 	end
 
@@ -215,6 +239,29 @@ local function gs_beginwindow( id, x, y, w, h )
 		render.outline( wnd.x - off, wnd.y - off, wnd.w + off * 2, wnd.h + off * 2, col );
 	end
 
+	-- Window base
+	render.rect( wnd.x, wnd.y, wnd.w, wnd.h, { 25, 25, 25, wnd.alpha } );
+
+	if wnd.draw_texture then -- This thing is very shitty rn, waiting till polak will add textures into draw.
+		for i = 1, wnd.w do
+			if i % 4 == 0 then
+				for k = 1, wnd.h do
+					if k % 4 == 0 then
+						render.rect( wnd.x + i - 2, wnd.y + k - 5, 1, 3, { 15, 15, 15, wnd.alpha } );
+					end
+				end
+			end
+
+			if i % 4 == 2 then
+				for k = 1, wnd.h do
+					if k % 4 == 0 then
+						render.rect( wnd.x + i - 2, wnd.y + k - 3, 1, 3, { 15, 15, 15, wnd.alpha } );
+					end
+				end
+			end
+		end
+	end
+
 	-- Window border
 	lmd_outlinehelp( 0, { 31, 31, 31, wnd.alpha } );
 
@@ -229,9 +276,6 @@ local function gs_beginwindow( id, x, y, w, h )
 	lmd_outlinehelp( 4, { 40, 40, 40, wnd.alpha } );
 	lmd_outlinehelp( 5, { 60, 60, 60, wnd.alpha } );
 	lmd_outlinehelp( 6, { 31, 31, 31, wnd.alpha } );
-
-	-- Window base
-	render.rect( wnd.x, wnd.y, wnd.w, wnd.h, { 25, 25, 25, wnd.alpha } );
 
 	-- If sizeable, draw litte triangle
 	if wnd.is_sizeable then
@@ -256,11 +300,64 @@ end
 local function gs_addgradient(  )
 	local wnd = gs_windows[gs_curwindow];
 
-	render.gradient( wnd.x, wnd.y, wnd.w / 2, 1, { 59, 175, 222, wnd.alpha }, { 202, 70, 205, wnd.alpha }, false );
-	render.gradient( wnd.x + ( wnd.w / 2 ), wnd.y, wnd.w / 2 - 1, 1, { 202, 70, 205, wnd.alpha }, { 201, 227, 58, wnd.alpha }, false );
+	render.gradient( wnd.x, wnd.y - 1, wnd.w / 2, 1, { 59, 175, 222, wnd.alpha }, { 202, 70, 205, wnd.alpha }, false );
+	render.gradient( wnd.x + ( wnd.w / 2 ), wnd.y - 1, wnd.w / 2, 1, { 202, 70, 205, wnd.alpha }, { 201, 227, 58, wnd.alpha }, false );
 end
 
 local function gs_endwindow(  )
+	if gs_curchild.id ~= "" then
+		gs_mx, gs_my = input.GetMousePos();
+
+		local highest_w = 0;
+
+		for i = 1, #gs_curchild.elements do
+			local textw, texth = draw.GetTextSize( gs_curchild.elements[i] );
+
+			if highest_w < textw then
+				highest_w = textw;
+			end
+		end
+
+		if input.IsButtonPressed( 1 ) and not gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y, gs_curchild.x + 20 + highest_w, gs_curchild.y + 20 * #gs_curchild.elements + #gs_curchild.elements ) then
+			gs_curchild.id = "";
+		end
+
+		render.rect( gs_curchild.x, gs_curchild.y, 20 + highest_w, 20 * #gs_curchild.elements + #gs_curchild.elements, { 36, 36, 36, 255 } );
+
+		local text_offset = 0;
+
+		for i = 1, #gs_curchild.elements do
+			if gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y + text_offset, gs_curchild.x + 20 + highest_w, gs_curchild.y + text_offset + 20 ) then
+				if input.IsButtonPressed( 1 ) then
+					if gs_curchild.multiselect then
+						gs_curchild.selected[#gs_curchild.selected + 1] = i;
+					else
+						gs_curchild.selected = { i };
+					end
+
+					gs_curchild.last_id = gs_curchild.id;
+					gs_curchild.id = "";
+				end
+
+				render.rect( gs_curchild.x, gs_curchild.y + text_offset, 20 + highest_w, 21, { 28, 28, 28, 255 } );
+			end
+
+			local r, g, b = 181, 181, 181;
+
+			for k = 1, #gs_curchild.selected do
+				if gs_curchild.selected[k] == i then
+					r, g, b = 149, 184, 6;
+				end
+			end
+
+			render.text( gs_curchild.x + 10, gs_curchild.y + text_offset + 4, gs_curchild.elements[i], { r, g, b, 255 } );
+
+			text_offset = text_offset + 20 + 1;
+		end
+
+		render.outline( gs_curchild.x, gs_curchild.y, 20 + highest_w, 20 * #gs_curchild.elements + #gs_curchild.elements, { 5, 5, 5, 255 } );
+	end
+
 	gs_curwindow = "";
 end
 
@@ -269,7 +366,7 @@ local function gs_setwindowmovable( val )
 		gs_windows[gs_curwindow].is_movable = val;
 
 		if val then val = "true" else val = "false" end
-		print("SetWindowMoveable has been set to " .. val);
+		gs_log("SetWindowMoveable has been set to " .. val);
 	end
 end
 
@@ -278,15 +375,30 @@ local function gs_setwindowsizeable( val )
 		gs_windows[gs_curwindow].is_sizeable = val;
 
 		if val then val = "true" else val = "false" end
-		print("SetWindowSizeable has been set to " .. val);
+		gs_log("SetWindowSizeable has been set to " .. val);
+	end
+end
+
+local function gs_setwindowdrawtexture( val )
+	if gs_windows[gs_curwindow].draw_texture ~= val then
+		gs_windows[gs_curwindow].draw_texture = val;
+
+		if val then val = "true" else val = "false" end
+		gs_log("SetWindowDrawTexture has been set to " .. val);
 	end
 end
 
 local function gs_setwindowopenkey( val )
-	if gs_windows[gs_curwindow].open_key == nil or gs_windows[gs_curwindow].open_key ~= val then
+	if gs_windows[gs_curwindow].open_key ~= val then
 		gs_windows[gs_curwindow].open_key = val;
 
-		print("SetWindowOpenKey has been set to " .. val);
+		local txt = "nil";
+
+		if val ~= nil then
+			txt = val;
+		end
+
+		gs_log("SetWindowOpenKey has been set to " .. txt);
 	end
 end
 
@@ -321,7 +433,8 @@ local function gs_begingroup( id, title, x, y, w, h )
 			drag = false,
 			resize = false,
 			highest_w = 0,
-			highest_h = 0
+			highest_h = 0,
+			last_y = 20
 		};
 
 		group.x = x;
@@ -333,7 +446,7 @@ local function gs_begingroup( id, title, x, y, w, h )
 
 		gs_groups[id] = group;
 
-		print( "Group " .. id .. " has been created" );
+		gs_log( "Group " .. id .. " has been created" );
 	end
 
 	if group.x + wnd.x < wnd.x or group.y + wnd.y < wnd.y or wnd.x + group.x + group.w + 15 > wnd.x + wnd.w or wnd.y + group.y + group.h + 15 > wnd.y + wnd.h then
@@ -462,6 +575,8 @@ local function gs_begingroup( id, title, x, y, w, h )
 		r, g, b = 149, 184, 6;
 	end
 
+	render.rect( wnd.x + group.x, wnd.y + group.y, group.w, group.h, { 25, 25, 25, wnd.alpha } );
+
 	render.rect( wnd.x + group.x, wnd.y + group.y, 1, group.h, { r, g, b, wnd.alpha } );
 	render.rect( wnd.x + group.x - 1, wnd.y + group.y - 1, 1, group.h + 2, { 5, 5, 5, wnd.alpha } );
 
@@ -547,6 +662,7 @@ local function gs_endgroup(  )
 	gs_groups[gs_curgroup].nextline_offset = 10;
 	gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].highest_h + 20;
 	gs_groups[gs_curgroup].is_nextline = true;
+	gs_groups[gs_curgroup].last_y = 20;
 
 	gs_curgroup = "";
 end
@@ -556,7 +672,7 @@ local function gs_setgroupmoveable( val )
 		gs_groups[gs_curgroup].is_moveable = val;
 
 		if val then val = "true" else val = "false" end
-		print("SetGroupMoveable has been set to " .. val);
+		gs_log("SetGroupMoveable has been set to " .. val);
 	end
 end
 
@@ -565,7 +681,7 @@ local function gs_setgroupsizeable( val )
 		gs_groups[gs_curgroup].is_sizeable = val;
 
 		if val then val = "true" else val = "false" end
-		print("SetGroupSizeable has been set to " .. val);
+		gs_log("SetGroupSizeable has been set to " .. val);
 	end
 end
 
@@ -602,6 +718,8 @@ local function gs_checkbox( title, var )
 	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
 		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
 	end
+
+	gs_groups[gs_curgroup].last_y = y;
 
 	return var;
 end
@@ -644,6 +762,8 @@ local function gs_button( title, w, h )
 	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
 		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
 	end
+
+	gs_groups[gs_curgroup].last_y = y;
 
 	return var;
 end
@@ -731,6 +851,8 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
 	end
 
+	gs_groups[gs_curgroup].last_y = y;
+
 	return var;
 end
 
@@ -757,6 +879,155 @@ local function gs_label( text, is_alt )
 	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
 		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
 	end
+
+	gs_groups[gs_curgroup].last_y = y;
+end
+
+local gs_curbind = {
+	id = "",
+	is_selecting = false
+};
+
+local gs_keytable = {
+	esc = { 27, "[ESC]" }, f1 = { 112, "[F1]" }, f2 = { 113, "[F2]" }, f3 = { 114, "[F3]" }, f4 = { 115, "[F4]" }, f5 = { 116, "[F5]" },
+	f6 = { 117, "[F6]" }, f7 = { 118, "[F7]" }, f8 = { 119, "[F8]" }, f9 = { 120, "[F9]" }, f10 = { 121, "[F10]" }, f11 = { 122, "[F11]" },
+	f12 = { 123, "[F12]" }, tilde = { 192, "[~]" }, one = { 49, "[1]" }, two = { 50, "[2]" }, three = { 51, "[3]" }, four = { 52, "[4]" },
+	five = { 53, "[5]" }, six = { 54, "[6]" }, seven = { 55, "[7]" }, eight = { 56, "[8]" }, nine = { 57, "[9]" }, zero = { 48, "[0]" },
+	minus = { 189, "[_]" }, equals = { 187, "[=]" }, backslash = { 220, "[\\]" }, backspace = { 8, "[BKSP]" },
+	tab = { 9, "[TAB]" }, q = { 81, "[Q]" }, w = { 87, "[W]" }, e = { 69, "[E]" }, r = { 82, "[R]" }, t = { 84, "[T]" }, y = { 89, "[Y]" }, u = { 85, "[U]" },
+	i = { 73, "[I]" }, o = { 79, "[O]" }, p = { 80, "[P]" }, bracket_o = { 219, "[[]" }, bracket_c = { 221, "[]]" },
+	a = { 65, "[A]" }, s = { 83, "[S]" }, d = { 68, "[D]" }, f = { 70, "[F]" }, g = { 71, "[G]" }, h = { 72, "[H]" }, j = { 74, "[J]" }, k = { 75, "[K]" },
+	l = { 76, "[L]" }, semicolon = { 186, "[;]" }, quotes = { 222, "[']" }, caps = { 20, "[CAPS]" }, enter = { 13, "[RETN]" },
+	shift = { 16, "[SHI]" }, z = { 90, "[Z]" }, x = { 88, "[X]" }, c = { 67, "[C]" }, v = { 86, "[V]" }, b = { 66, "[B]" }, n = { 78, "[N]" },
+	m = { 77, "[M]" }, comma = { 188, "[,]" }, dot = { 190, "[.]" }, slash = { 191, "[/]" }, ctrl = { 17, "[CTRL]" },
+	win = { 91, "[WIN]" }, alt = { 18, "[ALT]" }, space = { 32, "[SPC]" }, scroll = { 145, "[SCRL]" }, pause = { 19, "[PAUS]" },
+	insert = { 45, "[INS]" }, home = { 36, "[HOME]" }, pageup = { 33, "[PGUP]" }, pagedn = { 34, "[PGDN]" }, delete = { 46, "[DEL]" },
+	end_key = { 35, "[END]" }, uparrow = { 38, "[UP]" }, leftarrow = { 37, "[LEFT]" }, downarrow = { 40, "[DOWN]" }, 
+	rightarrow = { 39, "[RGHT]" }, num = { 144, "[NUM]" }, num_slash = { 111, "[/]" }, num_mult = { 106, "[*]" },
+	num_sub = { 109, "[-]" }, num_7 = { 103, "[7]" }, num_8 = { 104, "[8]" }, num_9 = { 105, "[9]" }, num_plus = { 107, "[+]" },
+	num_4 = { 100, "[4]" }, num_5 = { 101, "[5]" }, num_6 = { 102, "[6]" }, num_1 = { 97, "[1]" }, num_2 = { 98, "[2]" },
+	num_3 = { 99, "[3]" }, num_enter = { 13, "[ENT]" }, num_0 = { 96, "[0]" }, num_dot = { 110, "[.]" }, mouse_1 = { 1, "[M1]" }, mouse_2 = { 2, "[M2]" }
+};
+
+local function gs_key2name( key )
+	local ktxt = "[-]";
+
+	for k, v in pairs( gs_keytable ) do
+		if v[1] == key then
+			ktxt = v[2];
+		end
+	end
+
+	return ktxt;
+end
+
+local function gs_bind( id, detect_editable, var, key_held, detect_type )
+	local wnd, group = gs_newelement();
+
+	local x, y = wnd.x + group.x + group.w - 10, group.last_y;
+	local r, g, b = 181, 181, 181;
+
+	if gs_curbind.id == id then
+		if gs_curbind.is_selecting then
+			r, g, b = 255, 0, 0;
+		end
+	end
+
+	local did_select = false;
+
+	-- Backend
+	if gs_curbind.id == id and gs_curbind.is_selecting then
+		for k, v in pairs( SenseUI.Keys ) do
+			if input.IsButtonPressed( v ) and v ~= SenseUI.Keys.esc then
+				var = v;
+				gs_curbind.is_selecting = false;
+
+				did_select = true;
+				break;
+			else 
+				if input.IsButtonPressed( v ) and v == SenseUI.Keys.esc then
+					var = nil;
+					gs_curbind.is_selecting = false;
+
+					did_select = true;
+					break;
+				end
+			end
+		end
+
+		if not did_select then
+			gs_curbind.is_selecting = true;
+		end
+	end
+
+	local text = gs_key2name( var );
+	local textw, texth = draw.GetTextSize( text );
+
+	x = x - textw;
+
+	gs_mx, gs_my = input.GetMousePos();
+
+	if input.IsButtonPressed( 1 ) then
+		if gs_inbounds( gs_mx, gs_my, x, y, x + textw, y + texth ) then
+			gs_curbind.id = id;
+			gs_curbind.is_selecting = true;
+		end
+	end
+
+	if input.IsButtonPressed( 2 ) and detect_editable then
+		if not gs_curbind.is_selecting then
+			if gs_inbounds( gs_mx, gs_my, x, y, x + textw, y + texth ) then
+				gs_curchild.id = id .. "_child";
+				gs_curchild.x = x;
+				gs_curchild.y = y + texth + 2;
+				gs_curchild.elements = { "Always on", "On hotkey", "Toggle", "Off hotkey" };
+				gs_curchild.selected = { detect_type };
+			end
+		end
+	end
+
+	if gs_curchild.last_id == id .. "_child" then
+		detect_type = gs_curchild.selected[1];
+	end
+
+	local held_done = false;
+
+	if detect_type == 3 or detect_type == 1 then
+		held_done = true;
+	end
+
+	if var ~= nil then
+		if detect_type == 2 and input.IsButtonDown( var ) then
+			held_done = true;
+			key_held = true;
+		end
+
+		if detect_type == 4 and input.IsButtonDown( var ) then
+			held_done = true;
+			key_held = false;
+		end
+
+		if detect_type == 3 and input.IsButtonPressed( var ) then
+			key_held = not key_held;
+		end
+
+		if detect_type == 1 then
+			key_held = true;
+		end
+
+		if not held_done then
+			if detect_type ~= 4 then
+				key_held = false;
+			else
+				key_held = true;
+			end
+		end
+	end
+
+	-- Draw
+	render.text( x, y, text, { r, g, b, wnd.alpha } );
+
+	return var, key_held, detect_type;
 end
 
 SenseUI.Keys = {
@@ -777,14 +1048,22 @@ SenseUI.Keys = {
 	rightarrow = 39, num = 144, num_slash = 111, num_mult = 106,
 	num_sub = 109, num_7 = 103, num_8 = 104, num_9 = 105, num_plus = 107,
 	num_4 = 100, num_5 = 101, num_6 = 102, num_1 = 97, num_2 = 98,
-	num_3 = 99, num_enter = 13, num_0 = 96, num_dot = 110
+	num_3 = 99, num_enter = 13, num_0 = 96, num_dot = 110, mouse_1 = 1, mouse_2 = 2
 };
+
+SenseUI.KeyDetection = {
+	always_on = 1,
+	on_hotkey = 2,
+	toggle = 3,
+	off_hotkey = 4
+}
 
 SenseUI.BeginWindow = gs_beginwindow;
 SenseUI.AddGradient = gs_addgradient;
 SenseUI.EndWindow = gs_endwindow;
 SenseUI.SetWindowMoveable = gs_setwindowmovable;
 SenseUI.SetWindowOpenKey = gs_setwindowopenkey;
+SenseUI.SetWindowDrawTexture = gs_setwindowdrawtexture;
 SenseUI.BeginGroup = gs_begingroup;
 SenseUI.EndGroup = gs_endgroup;
 SenseUI.Checkbox = gs_checkbox;
@@ -794,3 +1073,8 @@ SenseUI.SetGroupSizeable = gs_setgroupsizeable;
 SenseUI.Button = gs_button;
 SenseUI.Slider = gs_slider;
 SenseUI.Label = gs_label;
+SenseUI.Bind = gs_bind;
+
+-- Let's add some useless hook here to make aimware think that script loaded
+callbacks.Register( "CreateMove", "senseui", function( cmd ) end );
+print("[SenseUI] UI has been loaded!");
