@@ -4,13 +4,25 @@
 	SenseUI is Immediate-Mode GUI for Aimware which have "GameSense" cheat style.
 ]]
 
+-- Anti multiload
+if SenseUI ~= nil then
+	return
+end
+
 SenseUI = {};
 SenseUI.EnableLogs = false;
 
 local gs_windows = {};		-- Contains all windows
-local gs_groups = {};		-- Contains all groups
 local gs_curwindow = "";	-- Current window ID
 local gs_curgroup = "";		-- Current group ID
+local gs_curtab = "";
+
+local gs_fonts = {
+	verdana_12 		= draw.CreateFont( "Verdana", 12, 400 ),
+	verdana_12b 	= draw.CreateFont( "Verdana", 12, 700 ),
+	verdana_10 		= draw.CreateFont( "Verdana", 10, 400 ),
+	astriumtabs		= draw.CreateFont( "Astriumtabs2", 42, 400 )
+}
 
 local gs_curchild = {
 	id = "",
@@ -56,9 +68,15 @@ render.gradient = function( x, y, w, h, col1, col2, is_vertical )
 	end
 end
 
-render.text = function( x, y, text, col )
+render.text = function( x, y, text, col, font )
+	if font ~= nil then
+		draw.SetFont( font )
+	else
+		draw.SetFont( gs_fonts.verdana_12 )
+	end
+
 	draw.Color( col[1], col[2], col[3], col[4] );
-	draw.TextShadow( x, y, text );
+	draw.Text( x, y, text );
 end
 -- CUSTOM DRAWING --
 
@@ -74,6 +92,13 @@ local function gs_inbounds( a, b, mina, minb, maxa, maxb )
 	else
 		return false;
 	end
+end
+
+-- Get size of non-array table
+local function gs_tablecount( T )
+	local count = 0
+	for _ in pairs(T) do count = count + 1 end
+	return count
 end
 
 -- Just checks if logs are enabled
@@ -94,7 +119,7 @@ end
 -- I'm too lazy to do shit what I moved into this func
 local function gs_newelement()
 	local wnd = gs_windows[gs_curwindow];
-	local group = gs_groups[gs_curgroup];
+	local group = wnd.groups[gs_curgroup];
 
 	return wnd, group;
 end
@@ -127,6 +152,8 @@ local function gs_beginwindow( id, x, y, w, h )
 			resize = false,
 			dmx = 0,
 			dmy = 0,
+			tabs = {},
+			groups = {},
 
 			-- Settings
 			is_movable = false,
@@ -240,14 +267,14 @@ local function gs_beginwindow( id, x, y, w, h )
 	end
 
 	-- Window base
-	render.rect( wnd.x, wnd.y, wnd.w, wnd.h, { 25, 25, 25, wnd.alpha } );
+	render.rect( wnd.x, wnd.y, wnd.w, wnd.h, { 19, 19, 19, wnd.alpha } );
 
 	if wnd.draw_texture then -- This thing is very shitty rn, waiting till polak will add textures into draw.
 		for i = 1, wnd.w do
 			if i % 4 == 0 then
 				for k = 1, wnd.h do
 					if k % 4 == 0 then
-						render.rect( wnd.x + i - 2, wnd.y + k - 5, 1, 3, { 15, 15, 15, wnd.alpha } );
+						render.rect( wnd.x + i - 2, wnd.y + k - 5, 1, 3, { 12, 12, 12, wnd.alpha } );
 					end
 				end
 			end
@@ -255,7 +282,7 @@ local function gs_beginwindow( id, x, y, w, h )
 			if i % 4 == 2 then
 				for k = 1, wnd.h do
 					if k % 4 == 0 then
-						render.rect( wnd.x + i - 2, wnd.y + k - 3, 1, 3, { 15, 15, 15, wnd.alpha } );
+						render.rect( wnd.x + i - 2, wnd.y + k - 3, 1, 3, { 12, 12, 12, wnd.alpha } );
 					end
 				end
 			end
@@ -300,8 +327,8 @@ end
 local function gs_addgradient(  )
 	local wnd = gs_windows[gs_curwindow];
 
-	render.gradient( wnd.x, wnd.y - 1, wnd.w / 2, 1, { 59, 175, 222, wnd.alpha }, { 202, 70, 205, wnd.alpha }, false );
-	render.gradient( wnd.x + ( wnd.w / 2 ), wnd.y - 1, wnd.w / 2, 1, { 202, 70, 205, wnd.alpha }, { 201, 227, 58, wnd.alpha }, false );
+	render.gradient( wnd.x, wnd.y, wnd.w / 2, 1, { 59, 175, 222, wnd.alpha }, { 202, 70, 205, wnd.alpha }, false );
+	render.gradient( wnd.x + ( wnd.w / 2 ), wnd.y, wnd.w / 2, 1, { 202, 70, 205, wnd.alpha }, { 201, 227, 58, wnd.alpha }, false );
 end
 
 local function gs_endwindow(  )
@@ -327,6 +354,9 @@ local function gs_endwindow(  )
 		local text_offset = 0;
 
 		for i = 1, #gs_curchild.elements do
+			local r, g, b = 181, 181, 181;
+			local fnt = gs_fonts.verdana_12;
+
 			if gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y + text_offset, gs_curchild.x + 20 + highest_w, gs_curchild.y + text_offset + 20 ) then
 				if input.IsButtonPressed( 1 ) then
 					if gs_curchild.multiselect then
@@ -340,17 +370,17 @@ local function gs_endwindow(  )
 				end
 
 				render.rect( gs_curchild.x, gs_curchild.y + text_offset, 20 + highest_w, 21, { 28, 28, 28, 255 } );
+				fnt = gs_fonts.verdana_12b;
 			end
-
-			local r, g, b = 181, 181, 181;
 
 			for k = 1, #gs_curchild.selected do
 				if gs_curchild.selected[k] == i then
 					r, g, b = 149, 184, 6;
+					fnt = gs_fonts.verdana_12b;
 				end
 			end
 
-			render.text( gs_curchild.x + 10, gs_curchild.y + text_offset + 4, gs_curchild.elements[i], { r, g, b, 255 } );
+			render.text( gs_curchild.x + 10, gs_curchild.y + text_offset + 4, gs_curchild.elements[i], { r, g, b, 255 }, fnt );
 
 			text_offset = text_offset + 20 + 1;
 		end
@@ -404,12 +434,18 @@ end
 
 local function gs_begingroup( id, title, x, y, w, h )
 	local wnd = gs_windows[gs_curwindow];
+	local tab = wnd.tabs[gs_curtab];
+	local tx = 0;
+
+	if tab ~= nil then
+		tx = 80;
+	end
 
 	-- Checks
 	if id == nil then return false end
 
 	-- Check if we already have window with id
-	local group = gs_groups[id];
+	local group = wnd.groups[id];
 
 	if group == nil then
 		-- Create window
@@ -437,14 +473,14 @@ local function gs_begingroup( id, title, x, y, w, h )
 			last_y = 20
 		};
 
-		group.x = x;
+		group.x = x + tx;
 		group.y = y;
 		group.w = w;
 		group.h = h;
 
 		group.title = title;
 
-		gs_groups[id] = group;
+		wnd.groups[id] = group;
 
 		gs_log( "Group " .. id .. " has been created" );
 	end
@@ -455,6 +491,7 @@ local function gs_begingroup( id, title, x, y, w, h )
 
 	gs_curgroup = id;
 
+	draw.SetFont( gs_fonts.verdana_12b );
 	local textw, texth = draw.GetTextSize( group.title );
 	local oldw, oldh = draw.GetTextSize( title );
 	local groupaftertext = group.w - 18 - textw - 3;
@@ -496,9 +533,9 @@ local function gs_begingroup( id, title, x, y, w, h )
 				group.dy = gs_my - group.y;
 			end
 
-			gs_groups[id] = group;
+			wnd.groups[id] = group;
 		else
-			gs_groups[id].drag = false;
+			wnd.groups[id].drag = false;
 		end
 	end
 
@@ -543,13 +580,13 @@ local function gs_begingroup( id, title, x, y, w, h )
 				group.dmy = gs_my - group.h;
 			end
 
-			gs_groups[id] = group;
+			wnd.groups[id] = group;
 		else
-			gs_groups[id].resize = false;
+			wnd.groups[id].resize = false;
 		end
 	end
 
-	gs_groups[id].highest_h = 0;
+	wnd.groups[id].highest_h = 0;
 
 	-- Draw
 	if groupaftertext_n > 15 then
@@ -575,7 +612,7 @@ local function gs_begingroup( id, title, x, y, w, h )
 		r, g, b = 149, 184, 6;
 	end
 
-	render.rect( wnd.x + group.x, wnd.y + group.y, group.w, group.h, { 25, 25, 25, wnd.alpha } );
+	render.rect( wnd.x + group.x, wnd.y + group.y, group.w, group.h, { 19, 19, 19, wnd.alpha } );
 
 	render.rect( wnd.x + group.x, wnd.y + group.y, 1, group.h, { r, g, b, wnd.alpha } );
 	render.rect( wnd.x + group.x - 1, wnd.y + group.y - 1, 1, group.h + 2, { 5, 5, 5, wnd.alpha } );
@@ -591,9 +628,9 @@ local function gs_begingroup( id, title, x, y, w, h )
 		render.rect( wnd.x + group.x + 1, wnd.y + group.y - 1, 14, 1, { 5, 5, 5, wnd.alpha } );
 
 		if size_changing then
-			render.text( wnd.x + group.x + 18, wnd.y + group.y - 6, group.title, { r, g, b, wnd.alpha } );
+			render.text( wnd.x + group.x + 18, wnd.y + group.y - 6, group.title, { r, g, b, wnd.alpha }, gs_fonts.verdana_12b );
 		else
-			render.text( wnd.x + group.x + 18, wnd.y + group.y - 6, group.title, { 181, 181, 181, wnd.alpha } );
+			render.text( wnd.x + group.x + 18, wnd.y + group.y - 6, group.title, { 181, 181, 181, wnd.alpha }, gs_fonts.verdana_12b );
 		end
 
 		render.rect( wnd.x + group.x + 18 + textw + 3, wnd.y + group.y, groupaftertext, 1, { r, g, b, wnd.alpha } );
@@ -616,8 +653,8 @@ local function gs_begingroup( id, title, x, y, w, h )
 end
 
 local function gs_endgroup(  )
-	local group = gs_groups[gs_curgroup];
 	local wnd = gs_windows[gs_curwindow];
+	local group = wnd.groups[gs_curgroup];
 
 	if group.w + group.x + 25 > wnd.w then
 		group.w = gs_clamp( group.w - ((group.w + group.x + 25) - wnd.w), 50, wnd.w - 50 );
@@ -657,19 +694,21 @@ local function gs_endgroup(  )
 		end
 	end
 
-	gs_groups[gs_curgroup] = group;
+	wnd.groups[gs_curgroup] = group;
 
-	gs_groups[gs_curgroup].nextline_offset = 10;
-	gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].highest_h + 20;
-	gs_groups[gs_curgroup].is_nextline = true;
-	gs_groups[gs_curgroup].last_y = 20;
+	wnd.groups[gs_curgroup].nextline_offset = 10;
+	wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].highest_h + 20;
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].last_y = 20;
 
 	gs_curgroup = "";
 end
 
 local function gs_setgroupmoveable( val )
-	if gs_groups[gs_curgroup].is_moveable ~= val then
-		gs_groups[gs_curgroup].is_moveable = val;
+	local wnd = gs_windows[gs_curwindow];
+
+	if wnd.groups[gs_curgroup].is_moveable ~= val then
+		wnd.groups[gs_curgroup].is_moveable = val;
 
 		if val then val = "true" else val = "false" end
 		gs_log("SetGroupMoveable has been set to " .. val);
@@ -677,8 +716,10 @@ local function gs_setgroupmoveable( val )
 end
 
 local function gs_setgroupsizeable( val )
-	if gs_groups[gs_curgroup].is_sizeable ~= val then
-		gs_groups[gs_curgroup].is_sizeable = val;
+	local wnd = gs_windows[gs_curwindow];
+
+	if wnd.groups[gs_curgroup].is_sizeable ~= val then
+		wnd.groups[gs_curgroup].is_sizeable = val;
 
 		if val then val = "true" else val = "false" end
 		gs_log("SetGroupSizeable has been set to " .. val);
@@ -708,18 +749,18 @@ local function gs_checkbox( title, var )
 
 	render.text( x + 13, y - 3, title, { 181, 181, 181, wnd.alpha } );
 
-	gs_groups[gs_curgroup].is_nextline = true;
-	gs_groups[gs_curgroup].nextline_offset = gs_groups[gs_curgroup].nextline_offset + texth + 2;
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 2;
 
 	if group.highest_w < 15 + textw then
-		gs_groups[gs_curgroup].highest_w = 15 + textw;
+		wnd.groups[gs_curgroup].highest_w = 15 + textw;
 	end
 
-	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
-		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
 	end
 
-	gs_groups[gs_curgroup].last_y = y;
+	wnd.groups[gs_curgroup].last_y = y;
 
 	return var;
 end
@@ -750,20 +791,20 @@ local function gs_button( title, w, h )
 		render.gradient( x + 2, y + 2, w - 4, h - 5, { 55, 55, 55, wnd.alpha }, { 45, 45, 45, wnd.alpha }, true );
 	end
 
-	render.text( x + (w / 2 - textw / 2), y + (h / 2 - texth / 2), title, { r, g, b, wnd.alpha } );
+	render.text( x + (w / 2 - textw / 2), y + (h / 2 - texth / 2), title, { r, g, b, wnd.alpha }, gs_fonts.verdana_12b );
 
-	gs_groups[gs_curgroup].is_nextline = true;
-	gs_groups[gs_curgroup].nextline_offset = gs_groups[gs_curgroup].nextline_offset + h + 5;
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + h + 5;
 
 	if group.highest_w < w then
-		gs_groups[gs_curgroup].highest_w = w;
+		wnd.groups[gs_curgroup].highest_w = w;
 	end
 
-	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
-		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
 	end
 
-	gs_groups[gs_curgroup].last_y = y;
+	wnd.groups[gs_curgroup].last_y = y;
 
 	return var;
 end
@@ -840,18 +881,18 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 
 	render.text( x + w - varw / 2, y + texth + varh / 6, vard, { 181, 181, 181, wnd.alpha } );
 
-	gs_groups[gs_curgroup].is_nextline = true;
-	gs_groups[gs_curgroup].nextline_offset = gs_groups[gs_curgroup].nextline_offset + texth + 12;
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 12;
 
 	if group.highest_w < 155 then
-		gs_groups[gs_curgroup].highest_w = 155;
+		wnd.groups[gs_curgroup].highest_w = 155;
 	end
 
-	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
-		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
 	end
 
-	gs_groups[gs_curgroup].last_y = y;
+	wnd.groups[gs_curgroup].last_y = y;
 
 	return var;
 end
@@ -869,18 +910,18 @@ local function gs_label( text, is_alt )
 
 	render.text( x, y, text, { r, g, b, wnd.alpha } );
 
-	gs_groups[gs_curgroup].is_nextline = true;
-	gs_groups[gs_curgroup].nextline_offset = gs_groups[gs_curgroup].nextline_offset + texth + 5;
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 5;
 
 	if group.highest_w < textw then
-		gs_groups[gs_curgroup].highest_w = textw;
+		wnd.groups[gs_curgroup].highest_w = textw;
 	end
 
-	if group.highest_h < gs_groups[gs_curgroup].nextline_offset then
-		gs_groups[gs_curgroup].highest_h = gs_groups[gs_curgroup].nextline_offset - gs_groups[gs_curgroup].nextline_offset / 2;
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
 	end
 
-	gs_groups[gs_curgroup].last_y = y;
+	wnd.groups[gs_curgroup].last_y = y;
 end
 
 local gs_curbind = {
@@ -925,7 +966,7 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 	local wnd, group = gs_newelement();
 
 	local x, y = wnd.x + group.x + group.w - 10, group.last_y;
-	local r, g, b = 181, 181, 181;
+	local r, g, b = 96, 96, 96;
 
 	if gs_curbind.id == id then
 		if gs_curbind.is_selecting then
@@ -961,6 +1002,8 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 	end
 
 	local text = gs_key2name( var );
+
+	draw.SetFont( gs_fonts.verdana_10 );
 	local textw, texth = draw.GetTextSize( text );
 
 	x = x - textw;
@@ -1025,9 +1068,121 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 	end
 
 	-- Draw
-	render.text( x, y, text, { r, g, b, wnd.alpha } );
+	render.text( x, y, text, { r, g, b, wnd.alpha }, gs_fonts.verdana_10 );
 
 	return var, key_held, detect_type;
+end
+
+function gs_drawtabbar( )
+	local wnd = gs_newelement();
+	local tab = nil;
+
+	for k, v in pairs( wnd.tabs ) do
+		if v.selected then
+			tab = v;
+		end
+	end
+
+	if tab ~= nil then
+		local tabNumeric = 0;
+
+		for k, v in pairs( wnd.tabs ) do
+			if v.id == tab.id then
+				tabNumeric = v.numID;
+			end
+		end
+
+		render.rect( wnd.x, wnd.y, 79, 24 + tabNumeric * 80, { 12, 12, 12, 255 } );
+		render.rect( wnd.x, wnd.y + 24 + (tabNumeric + 1) * 80, 79, wnd.h - (24 + (tabNumeric + 1) * 80), { 12, 12, 12, 255 } );
+
+		render.rect( wnd.x + 80, wnd.y, 1, 25 + tabNumeric * 80, { 75, 75, 75, 255 } );
+		render.rect( wnd.x, wnd.y + 25 + tabNumeric * 80, 81, 1, { 75, 75, 75, 255 } );
+		render.rect( wnd.x, wnd.y + 25 + (tabNumeric + 1) * 80, 80, 1, { 75, 75, 75, 255 } );
+		render.rect( wnd.x + 80, wnd.y + 25 + (tabNumeric + 1) * 80, 1, wnd.h - (25 + (tabNumeric + 1) * 80), { 75, 75, 75, 255 } );
+	end
+end
+
+function gs_begintab( id, icon )
+	local wnd = gs_newelement();
+
+	if wnd.tabs[id] == nil then
+		local gs_tab = {
+			id = "",
+			icon = "",
+			numID = 0,
+
+			selected = false,
+
+			groups = {}
+		};
+
+		gs_tab.id = id;
+		gs_tab.icon = icon;
+		gs_tab.numID = gs_tablecount( wnd.tabs );
+
+		wnd.tabs[id] = gs_tab;
+	end
+
+	gs_curtab = id;
+
+	local tab = wnd.tabs[gs_curtab];
+
+	-- Backend
+
+	local r, g, b = 90, 90, 90;
+	if tab.selected then
+		r, g, b = 210, 210, 210;
+	end
+
+	local tabNumeric = 0;
+
+	for k, v in pairs( wnd.tabs ) do
+		if v.id == id then
+			tabNumeric = v.numID;
+		end
+	end
+
+	gs_mx, gs_my = input.GetMousePos();
+	if gs_inbounds( gs_mx, gs_my, wnd.x, wnd.y + (25 + tabNumeric * 80), wnd.x + 80, wnd.y + (25 + tabNumeric * 80) + 80 ) then
+		r, g, b = 210, 210, 210;
+
+		if input.IsButtonPressed( 1 ) then
+			for k, v in pairs( wnd.tabs ) do
+				wnd.tabs[k].selected = false;
+
+				if v.id == id then
+					wnd.tabs[k].selected = true;
+				end
+			end
+		end
+	end
+
+	-- Draw
+
+	draw.SetFont( gs_fonts.astriumtabs );
+	local textw, texth = draw.GetTextSize( tab.icon[1] );
+
+	render.text( wnd.x + (40 - textw / 2), wnd.y + (25 + tabNumeric * 80) + (40 - texth / 2) - tab.icon[2], tab.icon[1], { r, g, b, 255 }, gs_fonts.astriumtabs );
+
+	return tab.selected;
+end
+
+local function gs_endtab( )
+	local wnd = gs_newelement();
+	local smthselected = false;
+
+	for k, v in pairs( wnd.tabs ) do
+		if v.selected then
+			smthselected = true;
+			break;
+		end
+	end
+
+	if not smthselected then
+		wnd.tabs[gs_curtab].selected = true;
+	end
+
+	gs_curtab = "";
 end
 
 SenseUI.Keys = {
@@ -1056,7 +1211,16 @@ SenseUI.KeyDetection = {
 	on_hotkey = 2,
 	toggle = 3,
 	off_hotkey = 4
-}
+};
+
+SenseUI.Icons = {
+	rage = { "C", 5 },
+	legit = { "D", 2 },
+	visuals = { "E", 2 },
+	settings = { "F", 3 },
+	skinchanger = { "G", 1 },
+	playerlist = { "H", 0 }
+};
 
 SenseUI.BeginWindow = gs_beginwindow;
 SenseUI.AddGradient = gs_addgradient;
@@ -1074,6 +1238,9 @@ SenseUI.Button = gs_button;
 SenseUI.Slider = gs_slider;
 SenseUI.Label = gs_label;
 SenseUI.Bind = gs_bind;
+SenseUI.BeginTab = gs_begintab;
+SenseUI.DrawTabBar = gs_drawtabbar;
+SenseUI.EndTab = gs_endtab;
 
 -- Let's add some useless hook here to make aimware think that script loaded
 callbacks.Register( "CreateMove", "senseui", function( cmd ) end );
