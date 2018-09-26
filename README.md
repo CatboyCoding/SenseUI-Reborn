@@ -1,7 +1,7 @@
 # SenseUI
 Immideate-Mode GUI for Aimware.NET
 
-![Example script](https://cdn.discordapp.com/attachments/443040968124399619/491895506772164628/unknown.png)
+![Example script](https://cdn.discordapp.com/attachments/494072394160275487/494460708860461058/unknown.png)
 
 * [Tables](#tables)
 * [Methods](#methods)
@@ -17,6 +17,7 @@ Immideate-Mode GUI for Aimware.NET
 
 # Documentation:
 #### How to load
+1. Install "AstriumTabs.ttf" if you haven't yet
 1. Create script "SenseUI.lua" in Aimware window
 1. Load it (it will be colored in menu, also it will write to console that load is success)
 1. Get some script (example one, or create your own)
