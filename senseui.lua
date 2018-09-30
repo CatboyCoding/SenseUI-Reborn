@@ -31,8 +31,11 @@ local gs_curchild = {
 	elements = {},
 	selected = {},
 	multiselect = false,
-	last_id = ""
+	last_id = "",
+	minimal_width = 0
 };
+
+local gs_isBlocked = false;
 
 local gs_mx = 0;	-- Mouse X
 local gs_my = 0;	-- Mouse Y
@@ -337,6 +340,8 @@ local function gs_endwindow(  )
 
 		local highest_w = 0;
 
+		draw.SetFont( gs_fonts.verdana_12b );
+
 		for i = 1, #gs_curchild.elements do
 			local textw, texth = draw.GetTextSize( gs_curchild.elements[i] );
 
@@ -345,8 +350,14 @@ local function gs_endwindow(  )
 			end
 		end
 
-		if input.IsButtonPressed( 1 ) and not gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y, gs_curchild.x + 20 + highest_w, gs_curchild.y + 20 * #gs_curchild.elements + #gs_curchild.elements ) then
+		if highest_w < gs_curchild.minimal_width then
+			highest_w = gs_curchild.minimal_width;
+		end
+
+		if input.IsButtonPressed( 1 ) and not gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y - 20, gs_curchild.x + 20 + highest_w, gs_curchild.y + 20 * #gs_curchild.elements + #gs_curchild.elements ) then
 			gs_curchild.id = "";
+			gs_curchild.minimal_width = 0;
+			gs_isBlocked = false;
 		end
 
 		render.rect( gs_curchild.x, gs_curchild.y, 20 + highest_w, 20 * #gs_curchild.elements + #gs_curchild.elements, { 36, 36, 36, 255 } );
@@ -360,21 +371,37 @@ local function gs_endwindow(  )
 			if gs_inbounds( gs_mx, gs_my, gs_curchild.x, gs_curchild.y + text_offset, gs_curchild.x + 20 + highest_w, gs_curchild.y + text_offset + 20 ) then
 				if input.IsButtonPressed( 1 ) then
 					if gs_curchild.multiselect then
-						gs_curchild.selected[#gs_curchild.selected + 1] = i;
+						if gs_curchild.selected[gs_curchild.elements[i]] == nil then
+							gs_curchild.selected[gs_curchild.elements[i]] = true;
+						else
+							if gs_curchild.selected[gs_curchild.elements[i]] then
+								gs_curchild.selected[gs_curchild.elements[i]] = false;
+							else
+								gs_curchild.selected[gs_curchild.elements[i]] = true;
+							end
+						end
 					else
 						gs_curchild.selected = { i };
+						gs_curchild.minimal_width = 0;
+						gs_curchild.last_id = gs_curchild.id;
+						gs_curchild.id = "";
+						gs_isBlocked = false;
 					end
-
-					gs_curchild.last_id = gs_curchild.id;
-					gs_curchild.id = "";
 				end
 
 				render.rect( gs_curchild.x, gs_curchild.y + text_offset, 20 + highest_w, 21, { 28, 28, 28, 255 } );
 				fnt = gs_fonts.verdana_12b;
 			end
 
-			for k = 1, #gs_curchild.selected do
-				if gs_curchild.selected[k] == i then
+			if not gs_curchild.multiselect then
+				for k = 1, #gs_curchild.selected do
+					if gs_curchild.selected[k] == i then
+						r, g, b = 149, 184, 6;
+						fnt = gs_fonts.verdana_12b;
+					end
+				end
+			else
+				if gs_curchild.selected[gs_curchild.elements[i]] ~= nil and gs_curchild.selected[gs_curchild.elements[i]] == true then
 					r, g, b = 149, 184, 6;
 					fnt = gs_fonts.verdana_12b;
 				end
@@ -500,89 +527,91 @@ local function gs_begingroup( id, title, x, y, w, h )
 	local size_changing = false;
 
 	-- Movement
-	if group.is_moveable then
-		-- If clicked and in bounds
-		if input.IsButtonDown( 1 ) then
-			gs_mx, gs_my = input.GetMousePos();
+	if not gs_isBlocked then
+		if group.is_moveable then
+			-- If clicked and in bounds
+			if input.IsButtonDown( 1 ) then
+				gs_mx, gs_my = input.GetMousePos();
 
-			if group.drag then
-				group.x = gs_mx - group.dx;
-				group.y = gs_my - group.dy;
+				if group.drag then
+					group.x = gs_mx - group.dx;
+					group.y = gs_my - group.dy;
 
-				if group.x < 25 then
-					group.x = 25;
+					if group.x < 25 then
+						group.x = 25;
+					end
+
+					if wnd.w < group.x + group.w + 25 then
+						group.x = group.x - ((group.x + group.w + 25) - wnd.w);
+					end
+
+					if wnd.h < group.y + group.h + 25 then
+						group.y = group.y - ((group.y + group.h + 25) - wnd.h);
+					end
+
+					if group.y < 25 then
+						group.y = 25;
+					end
 				end
 
-				if wnd.w < group.x + group.w + 25 then
-					group.x = group.x - ((group.x + group.w + 25) - wnd.w);
+				if gs_inbounds( gs_mx, gs_my, wnd.x + group.x + 15, wnd.y + group.y, wnd.x + group.x + 15 + textw, wnd.y + group.y + texth ) and group.h > 30 then
+					group.drag = true;
+					size_changing = true;
+					group.dx = gs_mx - group.x;
+					group.dy = gs_my - group.y;
 				end
 
-				if wnd.h < group.y + group.h + 25 then
-					group.y = group.y - ((group.y + group.h + 25) - wnd.h);
-				end
-
-				if group.y < 25 then
-					group.y = 25;
-				end
+				wnd.groups[id] = group;
+			else
+				wnd.groups[id].drag = false;
 			end
-
-			if gs_inbounds( gs_mx, gs_my, wnd.x + group.x + 15, wnd.y + group.y, wnd.x + group.x + 15 + textw, wnd.y + group.y + texth ) and group.h > 30 then
-				group.drag = true;
-				size_changing = true;
-				group.dx = gs_mx - group.x;
-				group.dy = gs_my - group.y;
-			end
-
-			wnd.groups[id] = group;
-		else
-			wnd.groups[id].drag = false;
 		end
-	end
 
-	if group.is_sizeable then
-		-- If clicked and in bounds
-		if input.IsButtonDown( 1 ) then
-			gs_mx, gs_my = input.GetMousePos();
+		if group.is_sizeable then
+			-- If clicked and in bounds
+			if input.IsButtonDown( 1 ) then
+				gs_mx, gs_my = input.GetMousePos();
 
-			if group.resize then
-				group.w = gs_mx - group.dmx;
-				group.h = gs_my - group.dmy;
+				if group.resize then
+					group.w = gs_mx - group.dmx;
+					group.h = gs_my - group.dmy;
 
-				if group.w < 50 then
-					group.w = 50;
+					if group.w < 50 then
+						group.w = 50;
+					end
+
+					if group.w < group.highest_w + 50 then
+						group.w = group.highest_w + 50;
+					end
+
+					if group.h < 50 then
+						group.h = 50;
+					end
+
+					if group.h < group.highest_h + 25 then
+						group.h = group.highest_h + 25;
+					end
+
+					if group.w + group.x + 25 > wnd.w then
+						group.w = group.w - ((group.w + group.x + 25) - wnd.w);
+					end
+
+					if group.h + group.y + 25 > wnd.h then
+						group.h = group.h - ((group.h + group.y + 25) - wnd.h);
+					end
 				end
 
-				if group.w < group.highest_w + 50 then
-					group.w = group.highest_w + 50;
+				if gs_inbounds( gs_mx, gs_my, wnd.x + group.x + group.w - 5, wnd.y + group.y + group.h - 5, wnd.x + group.x + group.w - 1, wnd.y + group.y + group.h - 1 )  then
+					group.resize = true;
+					size_changing = true;
+					group.dmx = gs_mx - group.w;
+					group.dmy = gs_my - group.h;
 				end
 
-				if group.h < 50 then
-					group.h = 50;
-				end
-
-				if group.h < group.highest_h + 25 then
-					group.h = group.highest_h + 25;
-				end
-
-				if group.w + group.x + 25 > wnd.w then
-					group.w = group.w - ((group.w + group.x + 25) - wnd.w);
-				end
-
-				if group.h + group.y + 25 > wnd.h then
-					group.h = group.h - ((group.h + group.y + 25) - wnd.h);
-				end
+				wnd.groups[id] = group;
+			else
+				wnd.groups[id].resize = false;
 			end
-
-			if gs_inbounds( gs_mx, gs_my, wnd.x + group.x + group.w - 5, wnd.y + group.y + group.h - 5, wnd.x + group.x + group.w - 1, wnd.y + group.y + group.h - 1 )  then
-				group.resize = true;
-				size_changing = true;
-				group.dmx = gs_mx - group.w;
-				group.dmy = gs_my - group.h;
-			end
-
-			wnd.groups[id] = group;
-		else
-			wnd.groups[id].resize = false;
 		end
 	end
 
@@ -733,7 +762,7 @@ local function gs_checkbox( title, var )
 	local x, y = wnd.x + group.x + 10, wnd.y + group.y + group.nextline_offset;
 
 	-- Backend
-	if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x, y, x + 15 + textw, y + texth ) then
+	if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x, y, x + 15 + textw, y + texth ) and not gs_isBlocked then
 		-- Update value
 		var = not var;
 	end
@@ -750,7 +779,7 @@ local function gs_checkbox( title, var )
 	render.text( x + 13, y - 3, title, { 181, 181, 181, wnd.alpha } );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 2;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 5;
 
 	if group.highest_w < 15 + textw then
 		wnd.groups[gs_curgroup].highest_w = 15 + textw;
@@ -774,7 +803,7 @@ local function gs_button( title, w, h )
 	-- Backend
 	local var = false;
 
-	if input.IsButtonDown( 1 ) and gs_inbounds( gs_mx, gs_my, x, y, x + w, y + h ) then
+	if input.IsButtonDown( 1 ) and gs_inbounds( gs_mx, gs_my, x, y, x + w, y + h ) and not gs_isBlocked then
 		var = true;
 	end
 
@@ -822,20 +851,22 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 	end
 
 	-- Backend
-	if input.IsButtonDown( 1 ) and gs_inbounds( gs_mx, gs_my, x, y + texth, x + 155, y + texth + 8 ) then
-		local relative_x = gs_clamp( gs_mx - x, 0, 153 );
-		local ratio = relative_x / 153;
+	if not gs_isBlocked then
+		if input.IsButtonDown( 1 ) and gs_inbounds( gs_mx, gs_my, x, y + texth, x + 155, y + texth + 8 ) then
+			local relative_x = gs_clamp( gs_mx - x, 0, 153 );
+			local ratio = relative_x / 153;
 
-		var = math.floor( min + ((max - min) * ratio) );
-	end
+			var = math.floor( min + ((max - min) * ratio) );
+		end
 
-	-- Handle -/+ buttons
-	if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x - 5, y + texth + 1, x - 2, y + texth + 4 ) and show_buttons then
-		var = var - 1;
-	end
+		-- Handle -/+ buttons
+		if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x - 5, y + texth + 1, x - 2, y + texth + 4 ) and show_buttons then
+			var = var - 1;
+		end
 
-	if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x + 155 + 2, y + texth + 1, x + 155 + 5, y + texth + 4 ) and show_buttons then
-		var = var + 1;
+		if input.IsButtonPressed( 1 ) and gs_inbounds( gs_mx, gs_my, x + 155 + 2, y + texth + 1, x + 155 + 5, y + texth + 4 ) and show_buttons then
+			var = var + 1;
+		end
 	end
 
 	-- Clamp final value
@@ -882,7 +913,7 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 	render.text( x + w - varw / 2, y + texth + varh / 6, vard, { 181, 181, 181, wnd.alpha } );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 12;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 13;
 
 	if group.highest_w < 155 then
 		wnd.groups[gs_curgroup].highest_w = 155;
@@ -977,7 +1008,7 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 	local did_select = false;
 
 	-- Backend
-	if gs_curbind.id == id and gs_curbind.is_selecting then
+	if gs_curbind.id == id and gs_curbind.is_selecting and not gs_isBlocked then
 		for k, v in pairs( SenseUI.Keys ) do
 			if input.IsButtonPressed( v ) and v ~= SenseUI.Keys.esc then
 				var = v;
@@ -1017,14 +1048,17 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 		end
 	end
 
-	if input.IsButtonPressed( 2 ) and detect_editable then
+	if input.IsButtonPressed( 2 ) and detect_editable and not gs_isBlocked then
 		if not gs_curbind.is_selecting then
 			if gs_inbounds( gs_mx, gs_my, x, y, x + textw, y + texth ) then
+				gs_curchild.minimal_width = 0;
 				gs_curchild.id = id .. "_child";
 				gs_curchild.x = x;
+				gs_curchild.multiselect = false;
 				gs_curchild.y = y + texth + 2;
 				gs_curchild.elements = { "Always on", "On hotkey", "Toggle", "Off hotkey" };
 				gs_curchild.selected = { detect_type };
+				gs_isBlocked = true;
 			end
 		end
 	end
@@ -1092,13 +1126,13 @@ function gs_drawtabbar( )
 			end
 		end
 
-		render.rect( wnd.x, wnd.y, 79, 24 + tabNumeric * 80, { 12, 12, 12, 255 } );
-		render.rect( wnd.x, wnd.y + 24 + (tabNumeric + 1) * 80, 79, wnd.h - (24 + (tabNumeric + 1) * 80), { 12, 12, 12, 255 } );
+		render.rect( wnd.x, wnd.y, 79, 24 + tabNumeric * 80, { 12, 12, 12, wnd.alpha } );
+		render.rect( wnd.x, wnd.y + 24 + (tabNumeric + 1) * 80, 79, wnd.h - (24 + (tabNumeric + 1) * 80), { 12, 12, 12, wnd.alpha } );
 
-		render.rect( wnd.x + 80, wnd.y, 1, 25 + tabNumeric * 80, { 75, 75, 75, 255 } );
-		render.rect( wnd.x, wnd.y + 25 + tabNumeric * 80, 81, 1, { 75, 75, 75, 255 } );
-		render.rect( wnd.x, wnd.y + 25 + (tabNumeric + 1) * 80, 80, 1, { 75, 75, 75, 255 } );
-		render.rect( wnd.x + 80, wnd.y + 25 + (tabNumeric + 1) * 80, 1, wnd.h - (25 + (tabNumeric + 1) * 80), { 75, 75, 75, 255 } );
+		render.rect( wnd.x + 80, wnd.y, 1, 25 + tabNumeric * 80, { 75, 75, 75, wnd.alpha } );
+		render.rect( wnd.x, wnd.y + 25 + tabNumeric * 80, 81, 1, { 75, 75, 75, wnd.alpha } );
+		render.rect( wnd.x, wnd.y + 25 + (tabNumeric + 1) * 80, 80, 1, { 75, 75, 75, wnd.alpha } );
+		render.rect( wnd.x + 80, wnd.y + 25 + (tabNumeric + 1) * 80, 1, wnd.h - (25 + (tabNumeric + 1) * 80), { 75, 75, 75, wnd.alpha } );
 	end
 end
 
@@ -1143,7 +1177,7 @@ function gs_begintab( id, icon )
 	end
 
 	gs_mx, gs_my = input.GetMousePos();
-	if gs_inbounds( gs_mx, gs_my, wnd.x, wnd.y + (25 + tabNumeric * 80), wnd.x + 80, wnd.y + (25 + tabNumeric * 80) + 80 ) then
+	if gs_inbounds( gs_mx, gs_my, wnd.x, wnd.y + (25 + tabNumeric * 80), wnd.x + 80, wnd.y + (25 + tabNumeric * 80) + 80 ) and not gs_isBlocked then
 		r, g, b = 210, 210, 210;
 
 		if input.IsButtonPressed( 1 ) then
@@ -1162,7 +1196,7 @@ function gs_begintab( id, icon )
 	draw.SetFont( gs_fonts.astriumtabs );
 	local textw, texth = draw.GetTextSize( tab.icon[1] );
 
-	render.text( wnd.x + (40 - textw / 2), wnd.y + (25 + tabNumeric * 80) + (40 - texth / 2) - tab.icon[2], tab.icon[1], { r, g, b, 255 }, gs_fonts.astriumtabs );
+	render.text( wnd.x + (40 - textw / 2), wnd.y + (25 + tabNumeric * 80) + (40 - texth / 2) - tab.icon[2], tab.icon[1], { r, g, b, wnd.alpha }, gs_fonts.astriumtabs );
 
 	return tab.selected;
 end
@@ -1183,6 +1217,167 @@ local function gs_endtab( )
 	end
 
 	gs_curtab = "";
+end
+
+local function gs_combo( title, elements, var )
+	local wnd, group = gs_newelement();
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local bg_col = { 26, 26, 26, wnd.alpha };
+	local textw, texth = draw.GetTextSize( title );
+	local is_up = false;
+
+	-- Backend
+	gs_mx, gs_my = input.GetMousePos();
+	if gs_inbounds( gs_mx, gs_my, x, y + texth + 2, x + 155, y + texth + 22 ) and not gs_isBlocked then
+		bg_col = { 36, 36, 36, wnd.alpha };
+
+		if input.IsButtonPressed( 1 ) then
+			gs_curchild.id = title .. "_child";
+			gs_curchild.x = x;
+			gs_curchild.y = y + texth + 22;
+			gs_curchild.minimal_width = 135;
+			gs_curchild.multiselect = false;
+			gs_curchild.elements = elements;
+			gs_curchild.selected = { var };
+			gs_isBlocked = true;
+		end
+	end
+
+	if gs_curchild.id == title .. "_child" then
+		is_up = true;
+	end
+
+	if gs_curchild.last_id == title .. "_child" then
+		var = gs_curchild.selected[1];
+		gs_curchild.last_id = "";
+	end
+
+	-- Drawing
+	render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+
+	render.gradient( x, y + texth + 2, 155, 19, bg_col, { 36, 36, 36, wnd.alpha }, true );
+	render.outline( x, y + texth + 2, 155, 20, { 5, 5, 5, wnd.alpha } );
+
+	render.text( x + 10, y + 6 + texth , elements[var], { 181, 181, 181, wnd.alpha } );
+
+	if not is_up then
+		render.rect( x + 150 - 9, y + texth + 11, 5, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 8, y + texth + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 7, y + texth + 13, 1, 1, { 181, 181, 181, wnd.alpha } );
+	else
+		render.rect( x + 150 - 7, y + texth + 11, 1, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 8, y + texth + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 9, y + texth + 13, 5, 1, { 181, 181, 181, wnd.alpha } );
+	end
+
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 27;
+
+	if group.highest_w < 155 then
+		wnd.groups[gs_curgroup].highest_w = 155;
+	end
+
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
+	end
+
+	wnd.groups[gs_curgroup].last_y = y;
+
+	return var;
+end
+
+local function gs_multicombo( title, elements, var )
+	local wnd, group = gs_newelement();
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local bg_col = { 26, 26, 26, wnd.alpha };
+	local textw, texth = draw.GetTextSize( title );
+	local is_up = false;
+
+	-- Backend
+	gs_mx, gs_my = input.GetMousePos();
+	if gs_inbounds( gs_mx, gs_my, x, y + texth + 2, x + 155, y + texth + 22 ) and not gs_isBlocked then
+		bg_col = { 36, 36, 36, wnd.alpha };
+
+		if input.IsButtonPressed( 1 ) then
+			gs_curchild.id = title .. "_child";
+			gs_curchild.x = x;
+			gs_curchild.y = y + texth + 22;
+			gs_curchild.minimal_width = 135;
+			gs_curchild.multiselect = true;
+			gs_curchild.elements = elements;
+			gs_curchild.selected = var;
+			gs_isBlocked = true;
+		end
+	end
+
+	if gs_curchild.id == title .. "_child" then
+		is_up = true;
+	end
+
+	if gs_curchild.last_id == title .. "_child" then
+		var = gs_curchild.selected;
+		gs_curchild.last_id = "";
+	end
+
+	-- Drawing
+	render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+
+	render.gradient( x, y + texth + 2, 155, 19, bg_col, { 36, 36, 36, wnd.alpha }, true );
+	render.outline( x, y + texth + 2, 155, 20, { 5, 5, 5, wnd.alpha } );
+
+	local fmt = "";
+	for i = 1, #elements do
+		local f_len = #fmt < 16;
+		local f_frst = #fmt <= 0;
+
+		if var[elements[i]] and f_len then
+			if not f_frst then
+				fmt = fmt .. ", ";
+			end
+
+			fmt = fmt .. elements[i];
+		else
+			if not f_len then
+				local selected = 0;
+
+				for k = 1, #elements do
+					if var[elements[k]] then
+						selected = selected + 1;
+					end
+				end
+
+				fmt = selected .. " selected";
+				break;
+			end
+		end
+	end
+
+	render.text( x + 10, y + 6 + texth , fmt, { 181, 181, 181, wnd.alpha } );
+
+	if not is_up then
+		render.rect( x + 150 - 9, y + texth + 11, 5, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 8, y + texth + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 7, y + texth + 13, 1, 1, { 181, 181, 181, wnd.alpha } );
+	else
+		render.rect( x + 150 - 7, y + texth + 11, 1, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 8, y + texth + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+		render.rect( x + 150 - 9, y + texth + 13, 5, 1, { 181, 181, 181, wnd.alpha } );
+	end
+
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 27;
+
+	if group.highest_w < 155 then
+		wnd.groups[gs_curgroup].highest_w = 155;
+	end
+
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
+	end
+
+	wnd.groups[gs_curgroup].last_y = y;
+
+	return var;
 end
 
 SenseUI.Keys = {
@@ -1241,6 +1436,8 @@ SenseUI.Bind = gs_bind;
 SenseUI.BeginTab = gs_begintab;
 SenseUI.DrawTabBar = gs_drawtabbar;
 SenseUI.EndTab = gs_endtab;
+SenseUI.Combo = gs_combo;
+SenseUI.MultiCombo = gs_multicombo;
 
 -- Let's add some useless hook here to make aimware think that script loaded
 callbacks.Register( "CreateMove", "senseui", function( cmd ) end );
