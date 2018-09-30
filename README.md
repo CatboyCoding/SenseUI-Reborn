@@ -102,7 +102,7 @@ Immideate-Mode GUI for Aimware.NET
     * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
     * *[int]* **var**: variable with selected item id.
     * _**Returns:**_ int (selected item id)
-* *table* **SenseUI.MultiCombo** ( title, elements, var ) - Draws combobox
+* *table* **SenseUI.MultiCombo** ( title, elements, var ) - Draws multiselect combobox
     * *[text]* **title**: title of combobox.
     * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
     * *[table]* **var**: variable with selected items.
