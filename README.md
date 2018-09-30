@@ -8,8 +8,6 @@ Immideate-Mode GUI for Aimware.NET
 * [Example](#example-script)
 
 #### To do
-1. Drowdown
-1. Multiselect
 1. Horizontal tabs
 1. Color picker
 1. Scrolling
@@ -99,6 +97,16 @@ Immideate-Mode GUI for Aimware.NET
     * *[icon]* **icon**: icon from **SenseUI.Icons**.
     * _**Returns:**_ bool (true if tab is active, otherwise false)
 * *void* **SenseUI.EndTab** ( ) - Ends tab.
+* *int* **SenseUI.Combo** ( title, elements, var ) - Draws combobox
+    * *[text]* **title**: title of combobox.
+    * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
+    * *[int]* **var**: variable with selected item id.
+    * _**Returns:**_ int (selected item id)
+* *table* **SenseUI.MultiCombo** ( title, elements, var ) - Draws combobox
+    * *[text]* **title**: title of combobox.
+    * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
+    * *[table]* **var**: variable with selected items.
+    * _**Returns:**_ table (selected items. Example of table: { "Element 1" = true, "Element 2" = false, "Element 3" = true })
 
 #### Example script
 ```lua
@@ -123,6 +131,9 @@ local bind_detect = SenseUI.KeyDetection.on_hotkey;
 local window_bkey = SenseUI.Keys.delete;
 local window_bact = false;
 local window_bdet = SenseUI.KeyDetection.on_hotkey;
+
+local ex_combo = 1;
+local ex_mcombo = {};
 
 SenseUI.EnableLogs = true;
 
@@ -195,13 +206,14 @@ function draw_callback()
 
 		if SenseUI.BeginTab( "tab2", SenseUI.Icons.visuals ) then
 			if SenseUI.BeginGroup( "newels1", "New elements", 25, 25, 205, 360 ) then
-				SenseUI.Label( "New elements would be here" );
+				ex_combo = SenseUI.Combo( "Example combo", { "el 1", "el 123" }, ex_combo );
+				ex_mcombo = SenseUI.MultiCombo( "Example multicombo", { "select this", "and this", "or maybe this?" }, ex_mcombo );
 
 				SenseUI.EndGroup();
 			end
 
 			if SenseUI.BeginGroup( "newels2", "New elements", 255, 25, 205, 360 ) then
-				SenseUI.Label( "and here!" );
+				
 
 				SenseUI.EndGroup();
 			end
