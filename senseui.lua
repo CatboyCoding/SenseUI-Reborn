@@ -490,7 +490,7 @@ local function gs_begingroup( id, title, x, y, w, h )
 
 			-- Stuff needed to work
 			is_nextline = true,
-			nextline_offset = 10,
+			nextline_offset = 15,
 			dx = 0,
 			dy = 0,
 			drag = false,
@@ -725,7 +725,7 @@ local function gs_endgroup(  )
 
 	wnd.groups[gs_curgroup] = group;
 
-	wnd.groups[gs_curgroup].nextline_offset = 10;
+	wnd.groups[gs_curgroup].nextline_offset = 15;
 	wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].highest_h + 20;
 	wnd.groups[gs_curgroup].is_nextline = true;
 	wnd.groups[gs_curgroup].last_y = 20;
@@ -848,9 +848,20 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 
 	if title ~= nil then
 		textw, texth = draw.GetTextSize( title );
+		texth = texth + 2;
 	end
 
 	-- Backend
+	local m = 0;
+
+	if min ~= 0 then
+		m = min;
+
+		var = var - m;
+		min = min - m;
+		max = max - m;
+	end
+
 	if not gs_isBlocked then
 		if input.IsButtonDown( 1 ) and gs_inbounds( gs_mx, gs_my, x, y + texth, x + 155, y + texth + 8 ) then
 			local relative_x = gs_clamp( gs_mx - x, 0, 153 );
@@ -873,6 +884,10 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 	var = math.ceil( gs_clamp( var, min, max ) );
 
 	local w = 153 / max * var;
+
+	var = var + m;
+	min = min + m;
+	max = max + m;
 
 	-- Draw
 	if title ~= nil then
@@ -908,12 +923,13 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 		vard = max_text;
 	end
 
+	draw.SetFont( gs_fonts.verdana_12b );
 	local varw, varh = draw.GetTextSize( vard );
 
-	render.text( x + w - varw / 2, y + texth + varh / 6, vard, { 181, 181, 181, wnd.alpha } );
+	render.text( x + w - varw / 2, y + texth + varh / 6, vard, { 181, 181, 181, wnd.alpha }, gs_fonts.verdana_12b );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 13;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 18;
 
 	if group.highest_w < 155 then
 		wnd.groups[gs_curgroup].highest_w = 155;
@@ -1073,7 +1089,7 @@ local function gs_bind( id, detect_editable, var, key_held, detect_type )
 		held_done = true;
 	end
 
-	if var ~= nil then
+	if var ~= nil and var ~= 0 then
 		if detect_type == 2 and input.IsButtonDown( var ) then
 			held_done = true;
 			key_held = true;
