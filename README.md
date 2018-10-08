@@ -409,3 +409,167 @@ Result:
 Key detection change:
 
 ![](https://gyazo.com/14e8920d3f499bca62ca8aed2d5b1fd9.gif)  
+
+SenseUI.DrawTabBar( )
+---------------------------------------------------------------
+Draws tab bar for tabs. Must be placed right after **SenseUI.BeginWindow**
+Example: 
+```lua
+if SenseUI.BeginWindow( "wnd1", 50, 50, 565, 400) then
+	SenseUI.DrawTabBar();
+	-- ...
+```
+
+SenseUI.BeginTab( id, icon ): *bool* isSelected
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| any | id | Unique ID of tab |
+| string | icon | Icon of tab. Placed in **SenseUI.Icons** |
+
+Draws tab. Must be placed in window and after **SenseUI.DrawTabBar()**
+Example:
+```lua
+if SenseUI.BeginWindow( "testWindow", 400, 400, 500, 500 ) then
+	SenseUI.DrawTabBar();
+
+	if SenseUI.BeginTab( "ayy lmao", SenseUI.Icons.settings ) then
+		if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+			-- ...
+			SenseUI.EndGroup();
+		end
+	end
+	SenseUI.EndTab();
+
+	SenseUI.EndWindow();
+end
+```
+
+Result:
+
+![](https://gyazo.com/77c67f363035108b98ed5600b0077c59.png)
+
+SenseUI.EndTab( )
+---------------------------------------------------------------
+Ends tab which was started by **SenseUI.BeginTab**. Must be placed outside if statement
+Example:
+```lua
+if SenseUI.BeginWindow( "testWindow", 400, 400, 500, 500 ) then
+	SenseUI.DrawTabBar();
+
+	if SenseUI.BeginTab( "ayy lmao", SenseUI.Icons.settings ) then
+		if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+			-- ...
+			SenseUI.EndGroup();
+		end
+	end
+	SenseUI.EndTab(); -- It's here cuz it has some calculations
+
+	SenseUI.EndWindow();
+end
+```
+
+SenseUI.Combo( title, elements, var ): *number* var
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of combo. Can be nil |
+| table | elements | Comma-separated table of elements |
+| number | var | Variable that contains current selected value |
+
+Draws combo. Must be placed in group
+Example:
+```lua
+local cmb = 1;
+
+-- ...
+
+cmb = SenseUI.Combo( "Combo!", { "Element 1", "Second one", "Third?" }, cmb );
+```
+
+Result:
+
+![](https://gyazo.com/8ec20b1a8420faf8ec61e7d8b63ac76f.gif)
+
+SenseUI.MultiCombo( title, elements, var ): *table* var
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of combo. Can be nil |
+| table | elements | Comma-separated table of elements |
+| number | var | Variable that contains current selected value |
+
+Draws multicombo. Must be placed in group. **var** has this structure:
+```lua
+var = {
+	"Element 1" = true,
+	"Second one" = false,
+	"Third?" = true
+}
+```
+
+Example:
+```lua
+local cmb = {};
+
+-- ...
+
+cmb = SenseUI.MultiCombo( "MultiCombo!", { "Element 1", "Second one", "Third?" }, cmb );
+```
+
+Result:
+
+![](https://gyazo.com/184b0f990606acda31fc8b72686611fa.png)
+
+SenseUI.Listbox( elements, maxElements, showSearch, var, searchVar, scrollVar ): *number* var, *string* searchVar, *number* scrollVar
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| table | elements | Comma-separated table of elements |
+| number | maxElements | How many elements can be shown at once |
+| bool | showSearch | Show search bar |
+| number | var | Variable that contains value |
+| string | searchVar | Variable for search bar. Can be nil if showSearch = false |
+| number | scrollVar | Variable for scroll. Can be nil if you are sure that count of elements will not be bigger than maxElements
+
+Draws listbox. Must be placed in group
+
+Example:
+```lua
+local list = 1;
+local listScroll = 0;
+local listSearch = "";
+
+-- ...
+
+list, listScroll, listSearch = SenseUI.Listbox( { "glock18", "p2000", "usp-s", "elites", "p250", "tec9", "five-seven", "cz75a", "deagle", "revolver" }, 4, true, list, listSearch, listScroll );
+```
+
+Result:
+
+![](https://gyazo.com/25628df4ac9b6b2df5a9873df6654b0a.gif)
+![](https://gyazo.com/4ec52a378e56e78dff3decbc4d8c716a.gif)
+
+
+SenseUI.Textbox( id, title, var ): *string* var
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| any | id | Unique ID of textbox |
+| string | title | Title of textbox |
+| string | var | Variable that contains textbox value |
+
+Draws textbox. Must be placed in group
+
+Example:
+```lua
+local textboxTest = "";
+
+-- ...
+
+textboxTest = SenseUI.Textbox( "text1", "Textbox!", textboxTest );
+```
+
+Result:
+
+![](https://gyazo.com/2656500707c07868fad4fb59ecabdfa1.gif)
