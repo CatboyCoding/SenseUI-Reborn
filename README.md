@@ -26,6 +26,9 @@ SenseUI is an immideate-mode graphical user interface for Aimware.NET cheat.
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.EndGroup](#senseuiendgroup-) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Checkbox](#senseuicheckbox-title-var--bool-var) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Button](#senseuibutton-title-width-height--bool-ispressed) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Slider](#senseuislider-title-min-max-format-min_text-max_text-show_buttons-var--number-var) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Label](#senseuilabel-title-is_alt-) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Bind](#senseuibind-id-can_change_detection-var-key_held-detection_method--int-var-bool-key_held-int-detection_method) |
 
 ## To Do
 1. Horizontal tabs
