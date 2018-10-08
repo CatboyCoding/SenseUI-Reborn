@@ -122,6 +122,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/ab5fca221fc3c48d9486a8eae6b88f2a.png)
 
 SenseUI.AddGradient( )
@@ -136,6 +137,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/9482fde8f8502f6545f27079a3147275.png)  
 
 SenseUI.SetWindowMoveable( value )
@@ -154,6 +156,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/14e4408eccf794e8bc66ddb1796305e2.gif)
 
 SenseUI.SetWindowSizeable( value )
@@ -172,6 +175,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/e8924f8ac57fa8584e482ca763999627.gif)
 
 SenseUI.SetWindowOpenKey( value )
@@ -190,6 +194,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/3c27823ca8c7dd2b459e3308bd10f973.gif)
 
 SenseUI.EndWindow( )
@@ -227,6 +232,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/7d1dec18905a057b505d3faea5ad0998.png)
 
 SenseUI.SetGroupMoveable( value )
@@ -250,6 +256,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/92238160c8a3b6d3c5c3063c82c3c7b7.gif)
 
 SenseUI.SetGroupSizeable( value )
@@ -273,6 +280,7 @@ end
 ```
 
 Result:
+
 ![](https://gyazo.com/62e729692d39d9f4fae597f941ff8934.gif)
 
 SenseUI.EndGroup( )
@@ -304,6 +312,7 @@ cb1 = SenseUI.Checkbox( "Test checkbox", cb1 );
 ```
 
 Result:
+
 ![](https://gyazo.com/c6d59cc1b6ced7fe7041399625e1b3f8.gif)
 
 SenseUI.Button( title, width, height ): *bool* isPressed
@@ -321,6 +330,7 @@ local isPressed = SenseUI.Button( "Button!", 155, 25 );
 ```
 
 Result:
+
 ![](https://gyazo.com/4bc663e0eebdf18ec752e10158356128.gif)
 
 SenseUI.Slider( title, min, max, format, min_text, max_text, show_buttons, var ): *number* var
@@ -347,6 +357,7 @@ sliderVal = SenseUI.Slider( "Cool slider here", 0, 100, "%", "Nothing", "Maximum
 ```
 
 Result:
+
 ![](https://gyazo.com/a4d0672518fce848296d6ac922256e87.gif)
 
 SenseUI.Label( title, is_alt )
@@ -364,6 +375,7 @@ SenseUI.Label( "Alt label", true );
 ```
 
 Result:
+
 ![](https://gyazo.com/f197bc700c59a5ea0469bbd24ffb09e4.png)  
 
 SenseUI.Bind( id, can_change_detection, var, key_held, detection_method ): *int* var, *bool* key_held, *int* detection_method
@@ -388,7 +400,9 @@ bind, bind_kh, bind_dm = SenseUI.Bind( "test bind", true, bind, bind_kh, bind_dm
 ```
 
 Result:
+
 ![](https://gyazo.com/0a30e37bff48d3250a15f4dc67fe8bad.gif)  
 
 Key detection change:
+
 ![](https://gyazo.com/14e8920d3f499bca62ca8aed2d5b1fd9.gif)  
