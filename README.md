@@ -29,6 +29,13 @@ SenseUI is an immideate-mode graphical user interface for Aimware.NET cheat.
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Slider](#senseuislider-title-min-max-format-min_text-max_text-show_buttons-var--number-var) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Label](#senseuilabel-title-is_alt-) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Bind](#senseuibind-id-can_change_detection-var-key_held-detection_method--int-var-bool-key_held-int-detection_method) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.DrawTabBar](#senseuidrawtabbar-) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.BeginTab](#senseuibegintab-id-icon--bool-isselected) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.EndTab](#senseuiendtab-) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Combo](#senseuicombo-title-elements-var--number-var) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.MultiCombo](#senseuimulticombo-title-elements-var--table-var) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Listbox](#senseuilistbox-elements-maxelements-showsearch-var-searchvar-scrollvar--number-var-string-searchvar-number-scrollvar) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Textbox](#senseuitextbox-id-title-var--string-var) |
 
 ## To Do
 1. Horizontal tabs
