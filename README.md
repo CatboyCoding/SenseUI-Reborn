@@ -157,7 +157,7 @@ end
 
 Result:
 
-![https://gyazo.com/14e4408eccf794e8bc66ddb1796305e2.gif](https://gyazo.com/14e4408eccf794e8bc66ddb1796305e2.gif)
+[Here](https://gyazo.com/14e4408eccf794e8bc66ddb1796305e2.gif)
 
 SenseUI.SetWindowSizeable( value )
 ---------------------------------------------------------------
@@ -176,7 +176,7 @@ end
 
 Result:
 
-![https://gyazo.com/e8924f8ac57fa8584e482ca763999627.gif](https://gyazo.com/e8924f8ac57fa8584e482ca763999627.gif)
+[Here](https://gyazo.com/e8924f8ac57fa8584e482ca763999627.gif)
 
 SenseUI.SetWindowOpenKey( value )
 ---------------------------------------------------------------
