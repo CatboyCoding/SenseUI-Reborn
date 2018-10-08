@@ -1,227 +1,394 @@
-# SenseUI
-Immideate-Mode GUI for Aimware.NET
+SenseUI
+=======
+SenseUI is an immideate-mode graphical user interface for Aimware.NET cheat.
 
 ![Example script](https://cdn.discordapp.com/attachments/494072394160275487/494460708860461058/unknown.png)
 
-* [Tables](#tables)
-* [Methods](#methods)
-* [Example](#example-script)
+| Contents |
+|----------|
+| [To do](#to-do) |
+| [Documentation](#documentation) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;How to load](#how-to-load) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;How to make own script](#how-to-make-own-script) |
+| [Tables](#tables)  |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Keys](#senseuikeys) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.KeyDetection](#senseuikeydetection) |
+| [Methods](#methods)  |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.BeginWindow](#senseuibeginwindow-id-x-y-w-h-:-bool-isDrawn) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.AddGradient](#senseuiaddgradient) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetWindowMoveable](#senseuisetwindowmoveable-value) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetWindowSizeable](#senseuisetwindowsizeable-value) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetWindowOpenKey](#senseuisetwindowopenkey-value) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.EndWindow](#senseuiendwindow) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.BeginGroup](#senseuibegingroup-id-title-x-y-width-height-bool-isDrawn) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetGroupMoveable](#senseuisetgroupmoveable-value) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetGroupSizeable](#senseuisetgroupsizeable-value) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.EndGroup](#senseuiendgroup) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Checkbox](#senseuicheckbox-title-var-bool-var) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Button](#senseuibutton-title-width-height-bool-isPressed) |
 
-#### To do
+## To Do
 1. Horizontal tabs
-1. Color picker
-1. Scrolling
-1. List
+2. Color picker
+3. Scrolling
 
-# Documentation:
-#### How to load
+# Documentation
+### How to load
 1. Install "AstriumTabs.ttf" if you haven't yet
-1. Create script "SenseUI.lua" in Aimware window
-1. Load it (it will be colored in menu, also it will write to console that load is success)
-1. Get some script (example one, or create your own)
-1. Load script
-1. Profit
+2. Create script "SenseUI.lua" in Aimware window
+3. Load it (it will be colored in menu, also it will write to console that load is success)
+4. Get some script (example one, or create your own)
+5. Load script
+6. Profit
 
 #### How to make own script
 1. Read documentation
-1. Follow example code
-1. Explore SenseUI.lua
-1. Profit
+2. Follow example code
+3. Explore SenseUI.lua
+4. Profit
 
-#### Tables
-* **SenseUI.Keys** - Table that contains all keycodes. __*Example:*__ "__\\__" key equals to "backslash". __KEEP IN MIND:__ "__END__" key is equals to "__end_key__"!
-* **SenseUI.KeyDetection** - Table that contains key detection methods. Always on - key will be always ON; On hotkey - key will be ON if user hold it, and OFF if he doesn't; Toggle - key will be toggled ON if it's OFF, and toggled OFF if it's ON; Off hotkey - key will be OFF if user hold it, and ON if he doesn't.
-* **SenseUI.Icons** - Table that contains all icons which are used for tabs.
+# Tables
 
-#### Methods
-* *bool* **SenseUI.BeginWindow** ( id, x, y, width, height ) - Draws basic window
-    * *[any]* **id**: unique ID of window.
-    * *[number]* **x**: start X position of window.
-    * *[number]* **y**: start Y position of window.
-    * *[number]* **width**: start width of window.
-    * *[number]* **height**: start height of window.
-    * _**Returns:**_ bool (true: on success; false: on fail)
-* *void* **SenseUI.AddGradient** ( ) - Adds gradient to a window
-* *void* **SenseUI.SetWindowMovable** ( value ) - Sets window is_moveable option
-    * *[bool]* **value**: value to set.
-* *void* **SenseUI.SetWindowOpenKey** ( value ) - Sets window open_key option
-    * *[number]* **value**: value to set. Can be **nil**.
-* *void* **SenseUI.SetWindowSizeable** ( value ) - Sets window is_sizeable option
-    * *[bool]* **value**: value to set.
-* *void* **SenseUI.EndWindow** ( ) - Finishes window which has been started with **BeginWindow**
-* *bool* **SenseUI.BeginGroup** ( id, title, x, y, width, height ) - Draws basic group
-    * *[any]* **id**: unique ID of group.
-    * *[any]* **title**: title of group. Can be **nil**.
-    * *[number]* **x**: start X position of group.
-    * *[number]* **y**: start Y position of group.
-    * *[number]* **width**: start width of group.
-    * *[number]* **height**: start height of group.
-    * _**Returns:**_ bool (true: on success; false: on fail)
-* *void* **SenseUI.SetGroupMovable** ( value ) - Sets group is_moveable option
-    * *[bool]* **value**: value to set.
-* *void* **SenseUI.SetGroupSizeable** ( value ) - Sets group is_sizeable option
-    * *[bool]* **value**: value to set.
-* *void* **SenseUI.EndGroup** ( ) - Finishes group which has been started with **BeginGroup**
-* *bool* **SenseUI.Checkbox** ( title, var ) - Draws basic checkbox
-    * *[any]* **title**: title of checkbox.
-    * *[bool]* **var**: variable to get value.
-    * _**Returns:**_ bool (edited var)
-* *bool* **SenseUI.Button** ( title, width, height ) - Draws basic button
-    * *[any]* **title**: title of checkbox.
-    * *[number]* **width**: width of button.
-    * *[number]* **height**: height of button.
-    * _**Returns:**_ bool (edited var)
-* *number* **SenseUI.Slider** ( title, min, max, format, min_text, max_text, show_buttons, var ) - Draws basic slider
-    * *[any]* **title**: title of checkbox.
-    * *[number]* **min**: minimal value.
-    * *[number]* **max**: maximal value.
-    * *[text]* **format**: text to end up value. Can be **nil**.
-    * *[text]* **min_text**: text to set when value reaches minimal. Can be **nil**.
-    * *[text]* **max_text**: same as **min_text**, but for maximal value. Can be **nil**.
-    * *[bool]* **show_buttons**: show **+** and **-** buttons (at left and right of slider).
-    * *[number]* **var**: variable to get value.
-    * _**Returns:**_ number (edited var)
-* *void* **SenseUI.Label** ( text, is_alternative ) - Draws basic label
-    * *[text]* **text**: text to write.
-    * *[bool]* **is_alternative**: **true** makes text yellow.
-* *int, bool, int* **SenseUI.Bind** ( id, can_change_detection, var, key_held, detection_method ) - Draws basic keybind after latest element
-    * *[any]* **id**: bind's id.
-    * *[bool]* **can_change_detection**: when **true**, right clicking on bind will show up key detection method selection.
-    * *[int]* **var**: variable to store key.
-    * *[bool]* **key_held**: variable to store if key held (needed for toggle).
-    * *[int]* **detection_method**: variable to store detection method; default is 2 (SenseUI.KeyDetection.on_hotkey).
-    * _**Returns:**_ int (selected key), bool (is key held), int (detection method)
-* *void* **SenseUI.DrawTabBar** ( ) - Draws bar for tabs. Must be called after **BeginWindow**!
-* *bool* **SenseUI.BeginTab** ( id, icon ) - Draws tab. Returns **TRUE** if tab is active
-    * *[any]* **id**: tab's id.
-    * *[icon]* **icon**: icon from **SenseUI.Icons**.
-    * _**Returns:**_ bool (true if tab is active, otherwise false)
-* *void* **SenseUI.EndTab** ( ) - Ends tab.
-* *int* **SenseUI.Combo** ( title, elements, var ) - Draws combobox
-    * *[text]* **title**: title of combobox.
-    * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
-    * *[int]* **var**: variable with selected item id.
-    * _**Returns:**_ int (selected item id)
-* *table* **SenseUI.MultiCombo** ( title, elements, var ) - Draws multiselect combobox
-    * *[text]* **title**: title of combobox.
-    * *[table]* **elements**: table with elements. Example: SenseUI.Combo( "Title!", { "Element 1", "Element 2", "Element 3" }, value )
-    * *[table]* **var**: variable with selected items.
-    * _**Returns:**_ table (selected items. Example of table: { "Element 1" = true, "Element 2" = false, "Element 3" = true })
-
-#### Example script
+SenseUI.Keys
+---------------
 ```lua
--- Check if SenseUI was loaded.
-if SenseUI == nil then
-	RunScript( "senseui.lua" );
+SenseUI.Keys = {
+	esc = 27, f1 = 112, f2 = 113, f3 = 114, f4 = 115, f5 = 116,
+	f6 = 117, f7 = 118, f8 = 119, f9 = 120, f10 = 121, f11 = 122,
+	f12 = 123, tilde = 192, one = 49, two = 50, three = 51, four = 52,
+	five = 53, six = 54, seven = 55, eight = 56, nine = 57, zero = 48,
+	minus = 189, equals = 187, backslash = 220, backspace = 8,
+	tab = 9, q = 81, w = 87, e = 69, r = 82, t = 84, y = 89, u = 85,
+	i = 73, o = 79, p = 80, bracket_o = 219, bracket_c = 221,
+	a = 65, s = 83, d = 68, f = 70, g = 71, h = 72, j = 74, k = 75,
+	l = 76, semicolon = 186, quotes = 222, caps = 20, enter = 13,
+	shift = 16, z = 90, x = 88, c = 67, v = 86, b = 66, n = 78,
+	m = 77, comma = 188, dot = 190, slash = 191, ctrl = 17,
+	win = 91, alt = 18, space = 32, scroll = 145, pause = 19,
+	insert = 45, home = 36, pageup = 33, pagedn = 34, delete = 46,
+	end_key = 35, uparrow = 38, leftarrow = 37, downarrow = 40, 
+	rightarrow = 39, num = 144, num_slash = 111, num_mult = 106,
+	num_sub = 109, num_7 = 103, num_8 = 104, num_9 = 105, num_plus = 107,
+	num_4 = 100, num_5 = 101, num_6 = 102, num_1 = 97, num_2 = 98,
+	num_3 = 99, num_enter = 13, num_0 = 96, num_dot = 110, mouse_1 = 1, mouse_2 = 2
+};
+```
+Contains all keys which are used in SenseUI.
+
+SenseUI.KeyDetection
+ -----------------------
+```lua
+SenseUI.KeyDetection = {
+	always_on = 1, -- Always ON
+	on_hotkey = 2, -- When key is down
+	toggle = 3,	   -- Works like checkbox
+	off_hotkey = 4 -- When key is up
+};
+```
+Defines how key press must be detected in **SenseUI.Bind**
+
+SenseUI.Icons
+ -----------------------
+```lua
+SenseUI.Icons = {
+	rage = { "C", 5 },			-- Rage icon (headshot)
+	legit = { "D", 2 },			-- Legit icon (scope)
+	visuals = { "E", 2 },		-- Visuals icon (brightness)
+	settings = { "F", 3 },		-- Settings icon (cogwheels)
+	skinchanger = { "G", 1 },	-- Skinchanger icon (karambit)
+	playerlist = { "H", 0 }		-- Player list icon (man)
+};
+```
+Used in **SenseUI.BeginTab**
+
+# Methods
+
+SenseUI.BeginWindow( id, x, y, w, h ): *bool* isDrawn
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| any | id | Unique identifier of window. |
+| number | x | Start X position |
+| number | y | Start Y position |
+| number | w | Start width of window |
+| number | h | Start height of window |
+
+Creates basic window. Returns *true* if window has been drawn. Must be ended with **SenseUI.EndWindow**
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	SenseUI.EndWindow();
 end
+```
 
-local show_group = true;
-local this_sizeable = false;
-local window_moveable = true;
-local show_gradient = true;
-local button_toggler = false;
-local ui_rate = 10;
-local slider_showpm = false;
-local funny_sliders = 0;
-local draw_texture = false;
-local bind_button = SenseUI.Keys.home;
-local bind_active = false;
-local bind_detect = SenseUI.KeyDetection.on_hotkey;
+Result:
+![](https://gyazo.com/ab5fca221fc3c48d9486a8eae6b88f2a.png)
 
-local window_bkey = SenseUI.Keys.delete;
-local window_bact = false;
-local window_bdet = SenseUI.KeyDetection.on_hotkey;
+SenseUI.AddGradient( )
+---------------------------------------------------------------
+Draws gradient line at the top of window
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	SenseUI.AddGradient();
+	SenseUI.EndWindow();
+end
+```
 
-local ex_combo = 1;
-local ex_mcombo = {};
+Result:
+![](https://gyazo.com/9482fde8f8502f6545f27079a3147275.png)  
 
-SenseUI.EnableLogs = true;
+SenseUI.SetWindowMoveable( value )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| bool | value | Value to set |
 
-function draw_callback()
-	if SenseUI.BeginWindow( "wnd1", 50, 50, 565, 400) then
-		SenseUI.DrawTabBar();
+Sets is_moveable to **value** in the current window
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	SenseUI.SetWindowMoveable( true );
+	SenseUI.EndWindow();
+end
+```
 
-		if show_gradient then
-			SenseUI.AddGradient();
-		end
+Result:
+![](https://gyazo.com/14e4408eccf794e8bc66ddb1796305e2.gif)
 
-		SenseUI.SetWindowDrawTexture( draw_texture ); -- Makes huge fps drop. Not recommended to use yet
-		SenseUI.SetWindowMoveable( window_moveable );
-		SenseUI.SetWindowOpenKey( window_bkey );
+SenseUI.SetWindowSizeable( value )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| bool | value | Value to set |
 
-		if SenseUI.BeginTab( "tab1", SenseUI.Icons.settings ) then
-			if SenseUI.BeginGroup( "grp1", "Example group 1", 25, 25, 205, 215 ) then
-				show_group = SenseUI.Checkbox( "Show second group", show_group );
-				SenseUI.Label( "This is normal label", false );
-				SenseUI.Label( "This is alt label", true );
-				button_toggler = SenseUI.Button( "Click me!", 120, 25 );
+Sets is_sizeable to **value** in the current window
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	SenseUI.SetWindowSizeable( true );
+	SenseUI.EndWindow();
+end
+```
 
-				if button_toggler then
-					SenseUI.Label( "You are holding button!" );
-				end
+Result:
+![](https://gyazo.com/e8924f8ac57fa8584e482ca763999627.gif)
 
-				slider_showpm = SenseUI.Checkbox( "Show -/+ buttons on slider", slider_showpm );
-				ui_rate = SenseUI.Slider( "How cool is this UI?", 0, 10, nil, "Poor", "Amazing", slider_showpm, ui_rate );
-				SenseUI.Label( "Your rate is: " ..  ui_rate .. "/10!" );
+SenseUI.SetWindowOpenKey( value )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| int | value | Value to set |
 
-				SenseUI.Label( "Funny thing below" );
-				funny_sliders = SenseUI.Slider( nil, 0, 100, nil, nil, nil, false, funny_sliders );
-				funny_sliders = 100 - SenseUI.Slider(  nil, 0, 100, nil, nil, nil, false, 100 - funny_sliders );
+Sets open_key to **value** in the current window. You can take values from **SenseUI.Keys** 
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	SenseUI.SetWindowOpenKey( SenseUI.Keys.delete );
+	SenseUI.EndWindow();
+end
+```
 
-				SenseUI.EndGroup();
-			end
+Result:
+![](https://gyazo.com/3c27823ca8c7dd2b459e3308bd10f973.gif)
 
-			if show_group then
-				if SenseUI.BeginGroup( "grp2", "Example group 2", 255, 25, 205, 215 ) then
-					SenseUI.SetGroupSizeable( this_sizeable );
+SenseUI.EndWindow( )
+---------------------------------------------------------------
+Ends window which was started by **SenseUI.BeginWindow**
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	-- ....
+	SenseUI.EndWindow();
+end
+```
 
-					this_sizeable = SenseUI.Checkbox( "Make this sizeable", this_sizeable );
-					show_gradient = SenseUI.Checkbox( "Show gradient", show_gradient );
-					draw_texture = SenseUI.Checkbox( "Draw window texture", draw_texture );
+SenseUI.BeginGroup( id, title, x, y, width, height ): *bool* isDrawn
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| any | id | Unique ID of group |
+| string | title | Title of group. If nil, then group doesn't have title |
+| number | x | X position of group |
+| number | y | Y position of group |
+| number | width | Width of group |
+| number | height | Height of group |
 
-					local txt = "off";
-					if bind_active then txt = "on" end;
-
-					SenseUI.Label( "Example bind: " .. txt );
-					bind_button, bind_active, bind_detect = SenseUI.Bind( "bind1", true, bind_button, bind_active, bind_detect );
-
-					SenseUI.Label( "Menu key" );
-					window_bkey, window_bact, window_bdet = SenseUI.Bind( "wndToggle", false, window_bkey, window_bact, window_bdet );
-
-					SenseUI.EndGroup();
-				end
-			end
-
-			if SenseUI.BeginGroup( "grp3", "About	 [ SenseUI by Ruppet ]", 25, 265, 435, 110 ) then
-				SenseUI.Label( "Current progress: ", true );
-				SenseUI.Label( "Controls - Checkbox, Button, Slider, Label, Keybind" );
-				SenseUI.Label( "Containers - Window, Group, Tabs" );
-				SenseUI.Label( "TODO:", true );
-				SenseUI.Label( "[ more on github ]" );
-
-				SenseUI.EndGroup();
-			end
-		end
-		SenseUI.EndTab();
-
-		if SenseUI.BeginTab( "tab2", SenseUI.Icons.visuals ) then
-			if SenseUI.BeginGroup( "newels1", "New elements", 25, 25, 205, 360 ) then
-				ex_combo = SenseUI.Combo( "Example combo", { "el 1", "el 123" }, ex_combo );
-				ex_mcombo = SenseUI.MultiCombo( "Example multicombo", { "select this", "and this", "or maybe this?" }, ex_mcombo );
-
-				SenseUI.EndGroup();
-			end
-
-			if SenseUI.BeginGroup( "newels2", "New elements", 255, 25, 205, 360 ) then
-				
-
-				SenseUI.EndGroup();
-			end
-		end
-		SenseUI.EndTab();
-
-		SenseUI.EndWindow();
+Draws basic group. Must be ended with **SenseUI.EndGroup**
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+		SenseUI.EndGroup();
 	end
+	
+	SenseUI.EndWindow();
 end
+```
 
-callbacks.Register( "Draw", "suitest", draw_callback );
+Result:
+![](https://gyazo.com/7d1dec18905a057b505d3faea5ad0998.png)
+
+SenseUI.SetGroupMoveable( value )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| bool | value | Value to set |
+
+Sets is_moveable to **value** in the current group.
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+		SenseUI.SetGroupMoveable( true );
+		
+		SenseUI.EndGroup();
+	end
+	
+	SenseUI.EndWindow();
+end
+```
+
+Result:
+![](https://gyazo.com/92238160c8a3b6d3c5c3063c82c3c7b7.gif)
+
+SenseUI.SetGroupSizeable( value )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| bool | value | Value to set |
+
+Sets is_sizeable to **value** in the current group.
+Example: 
+```lua
+if SenseUI.BeginWindow( "testWindow", 50, 50, 400, 400 ) then
+	if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+		SenseUI.SetGroupSizeable( true );
+		
+		SenseUI.EndGroup();
+	end
+	
+	SenseUI.EndWindow();
+end
+```
+
+Result:
+![](https://gyazo.com/62e729692d39d9f4fae597f941ff8934.gif)
+
+SenseUI.EndGroup( )
+---------------------------------------------------------------
+Ends group which was started by **SenseUI.EndGroup**
+Example: 
+```lua
+if SenseUI.BeginGroup( "testGroup", "Group name!", 25, 25, 350, 350 ) then
+	-- ...
+	SenseUI.EndGroup();
+end
+```  
+
+SenseUI.Checkbox( title, var ): *bool* var
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of checkbox |
+| bool | var | Var which contains value of checkbox |
+
+Draws basic checkbox. Must be placed in a group
+Example: 
+```lua
+local cb1 = false;
+
+-- ...
+
+cb1 = SenseUI.Checkbox( "Test checkbox", cb1 );
+```
+
+Result:
+![](https://gyazo.com/c6d59cc1b6ced7fe7041399625e1b3f8.gif)
+
+SenseUI.Button( title, width, height ): *bool* isPressed
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of button |
+| number | width | Width of button |
+| number | height | Height of button |
+
+Draws basic button. Must be placed in a group
+Example: 
+```lua
+local isPressed = SenseUI.Button( "Button!", 155, 25 );
+```
+
+Result:
+![](https://gyazo.com/4bc663e0eebdf18ec752e10158356128.gif)
+
+SenseUI.Slider( title, min, max, format, min_text, max_text, show_buttons, var ): *number* var
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of slider |
+| number | min | Minimal value |
+| number | max | Maximal value |
+| string | format | Text to append to the value (e.g. format = "%" will do something like "50%" |
+| string | min_text | Text to show when value reaches minimal value |
+| string | max_text | Text to show when value reaches maximal value |
+| bool | show_buttons | Show + and - buttons at sides of slider |
+| number | var | Variable that contains value of slider |
+
+Draws basic slider. Must be placed in a group
+Example: 
+```lua
+local sliderVal = 0;
+
+-- ...
+
+sliderVal = SenseUI.Slider( "Cool slider here", 0, 100, "%", "Nothing", "Maximum!", false, sliderVal );
+```
+
+Result:
+![](https://gyazo.com/a4d0672518fce848296d6ac922256e87.gif)
+
+SenseUI.Label( title, is_alt )
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| string | title | Title of label |
+| bool | is_alt | Is alternative label. Makes label yellow
+
+Draws basic label. Must be placed in a group
+Example: 
+```lua
+SenseUI.Label( "Normal label" );
+SenseUI.Label( "Alt label", true );
+```
+
+Result:
+![](https://gyazo.com/f197bc700c59a5ea0469bbd24ffb09e4.png)  
+
+SenseUI.Bind( id, can_change_detection, var, key_held, detection_method ): *int* var, *bool* key_held, *int* detection_method
+---------------------------------------------------------------
+| Type | Argument | Description |
+|--|--|--|
+| any | id | Unique ID of bind |
+| bool | can_change_detection | Defines if user can change detection method of bind |
+| number | var | Variable that contains current key |
+| bool | key_held | Defines if key is holding. Used only for **SenseUI.KeyDetection.toggle** |
+| number | detection_method | How key must be detected. **SenseUI.KeyDetection** contains values for this argument
+
+Draws basic key bind. Must be placed in a group and right after some other element
+Example: 
+```lua
+local bind, bind_kh, bind_dm = 0, false, SenseUI.KeyDetection.on_hotkey;
+
+-- ...
+
+SenseUI.Label( "Bind here!" );
+bind, bind_kh, bind_dm = SenseUI.Bind( "test bind", true, bind, bind_kh, bind_dm );
+```
+
+Result:
+![](https://gyazo.com/0a30e37bff48d3250a15f4dc67fe8bad.gif)  
+
+Key detection change:
+![](https://gyazo.com/14e8920d3f499bca62ca8aed2d5b1fd9.gif)  
