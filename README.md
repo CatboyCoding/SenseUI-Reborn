@@ -14,7 +14,7 @@ SenseUI is an immideate-mode graphical user interface for Aimware.NET cheat.
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.Keys](#senseuikeys) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.KeyDetection](#senseuikeydetection) |
 | [Methods](#methods)  |
-| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.BeginWindow](senseuibeginwindow-id-x-y-w-h--bool-isdrawn) |
+| [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.BeginWindow](#senseuibeginwindow-id-x-y-w-h--bool-isdrawn) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.AddGradient](#senseuiaddgradient-) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetWindowMoveable](#senseuisetwindowmoveable-value-) |
 | [&nbsp;&nbsp;&nbsp;&nbsp;SenseUI.SetWindowSizeable](#senseuisetwindowsizeable-value-) |
