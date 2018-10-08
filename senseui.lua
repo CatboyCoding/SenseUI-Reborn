@@ -12,10 +12,48 @@ end
 SenseUI = {};
 SenseUI.EnableLogs = false;
 
+SenseUI.Keys = {
+	esc = 27, f1 = 112, f2 = 113, f3 = 114, f4 = 115, f5 = 116,
+	f6 = 117, f7 = 118, f8 = 119, f9 = 120, f10 = 121, f11 = 122,
+	f12 = 123, tilde = 192, one = 49, two = 50, three = 51, four = 52,
+	five = 53, six = 54, seven = 55, eight = 56, nine = 57, zero = 48,
+	minus = 189, equals = 187, backslash = 220, backspace = 8,
+	tab = 9, q = 81, w = 87, e = 69, r = 82, t = 84, y = 89, u = 85,
+	i = 73, o = 79, p = 80, bracket_o = 219, bracket_c = 221,
+	a = 65, s = 83, d = 68, f = 70, g = 71, h = 72, j = 74, k = 75,
+	l = 76, semicolon = 186, quotes = 222, caps = 20, enter = 13,
+	shift = 16, z = 90, x = 88, c = 67, v = 86, b = 66, n = 78,
+	m = 77, comma = 188, dot = 190, slash = 191, ctrl = 17,
+	win = 91, alt = 18, space = 32, scroll = 145, pause = 19,
+	insert = 45, home = 36, pageup = 33, pagedn = 34, delete = 46,
+	end_key = 35, uparrow = 38, leftarrow = 37, downarrow = 40, 
+	rightarrow = 39, num = 144, num_slash = 111, num_mult = 106,
+	num_sub = 109, num_7 = 103, num_8 = 104, num_9 = 105, num_plus = 107,
+	num_4 = 100, num_5 = 101, num_6 = 102, num_1 = 97, num_2 = 98,
+	num_3 = 99, num_enter = 13, num_0 = 96, num_dot = 110, mouse_1 = 1, mouse_2 = 2
+};
+
+SenseUI.KeyDetection = {
+	always_on = 1,
+	on_hotkey = 2,
+	toggle = 3,
+	off_hotkey = 4
+};
+
+SenseUI.Icons = {
+	rage = { "C", 5 },
+	legit = { "D", 2 },
+	visuals = { "E", 2 },
+	settings = { "F", 3 },
+	skinchanger = { "G", 1 },
+	playerlist = { "H", 0 }
+};
+
 local gs_windows = {};		-- Contains all windows
 local gs_curwindow = "";	-- Current window ID
 local gs_curgroup = "";		-- Current group ID
-local gs_curtab = "";
+local gs_curtab = "";		-- Current tab
+local gs_curinput = "";		-- Current input
 
 local gs_fonts = {
 	verdana_12 		= draw.CreateFont( "Verdana", 12, 400 ),
@@ -779,7 +817,7 @@ local function gs_checkbox( title, var )
 	render.text( x + 13, y - 3, title, { 181, 181, 181, wnd.alpha } );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 5;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + 17;
 
 	if group.highest_w < 15 + textw then
 		wnd.groups[gs_curgroup].highest_w = 15 + textw;
@@ -841,7 +879,7 @@ end
 local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons, var )
 	local wnd, group = gs_newelement();
 
-	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset - 3;
 	local textw, texth = 0, 0;
 
 	gs_mx, gs_my = input.GetMousePos();
@@ -891,7 +929,7 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 
 	-- Draw
 	if title ~= nil then
-		render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+		render.text( x, y - 2, title, { 181, 181, 181, wnd.alpha } );
 	end
 
 	render.outline( x, y + texth, 155, 8, { 5, 5, 5, wnd.alpha } );
@@ -929,7 +967,7 @@ local function gs_slider( title, min, max, fmt, min_text, max_text, show_buttons
 	render.text( x + w - varw / 2, y + texth + varh / 6, vard, { 181, 181, 181, wnd.alpha }, gs_fonts.verdana_12b );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 18;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 14;
 
 	if group.highest_w < 155 then
 		wnd.groups[gs_curgroup].highest_w = 155;
@@ -947,7 +985,7 @@ end
 local function gs_label( text, is_alt )
 	local wnd, group = gs_newelement();
 
-	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset - 3;
 	local textw, texth = draw.GetTextSize( text );
 	local r, g, b = 181, 181, 181;
 
@@ -958,7 +996,7 @@ local function gs_label( text, is_alt )
 	render.text( x, y, text, { r, g, b, wnd.alpha } );
 
 	wnd.groups[gs_curgroup].is_nextline = true;
-	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + texth + 5;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + 17;
 
 	if group.highest_w < textw then
 		wnd.groups[gs_curgroup].highest_w = textw;
@@ -1237,10 +1275,21 @@ end
 
 local function gs_combo( title, elements, var )
 	local wnd, group = gs_newelement();
-	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset - 3;
 	local bg_col = { 26, 26, 26, wnd.alpha };
-	local textw, texth = draw.GetTextSize( title );
+	local textw, texth = 0, 0;
+
+	if title ~= nil then
+		draw.GetTextSize( title );
+	end
+
 	local is_up = false;
+
+	local ltitle = elements[1] .. var;
+
+	if title ~= nil then
+		ltitle = title;
+	end
 
 	-- Backend
 	gs_mx, gs_my = input.GetMousePos();
@@ -1248,7 +1297,7 @@ local function gs_combo( title, elements, var )
 		bg_col = { 36, 36, 36, wnd.alpha };
 
 		if input.IsButtonPressed( 1 ) then
-			gs_curchild.id = title .. "_child";
+			gs_curchild.id = ltitle .. "_child";
 			gs_curchild.x = x;
 			gs_curchild.y = y + texth + 22;
 			gs_curchild.minimal_width = 135;
@@ -1259,17 +1308,19 @@ local function gs_combo( title, elements, var )
 		end
 	end
 
-	if gs_curchild.id == title .. "_child" then
+	if gs_curchild.id == ltitle .. "_child" then
 		is_up = true;
 	end
 
-	if gs_curchild.last_id == title .. "_child" then
+	if gs_curchild.last_id == ltitle .. "_child" then
 		var = gs_curchild.selected[1];
 		gs_curchild.last_id = "";
 	end
 
 	-- Drawing
-	render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+	if title ~= nil then
+		render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+	end
 
 	render.gradient( x, y + texth + 2, 155, 19, bg_col, { 36, 36, 36, wnd.alpha }, true );
 	render.outline( x, y + texth + 2, 155, 20, { 5, 5, 5, wnd.alpha } );
@@ -1304,7 +1355,7 @@ end
 
 local function gs_multicombo( title, elements, var )
 	local wnd, group = gs_newelement();
-	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset - 3;
 	local bg_col = { 26, 26, 26, wnd.alpha };
 	local textw, texth = draw.GetTextSize( title );
 	local is_up = false;
@@ -1368,6 +1419,10 @@ local function gs_multicombo( title, elements, var )
 		end
 	end
 
+	if fmt == "" then
+		fmt = "-";
+	end
+
 	render.text( x + 10, y + 6 + texth , fmt, { 181, 181, 181, wnd.alpha } );
 
 	if not is_up then
@@ -1396,42 +1451,323 @@ local function gs_multicombo( title, elements, var )
 	return var;
 end
 
-SenseUI.Keys = {
-	esc = 27, f1 = 112, f2 = 113, f3 = 114, f4 = 115, f5 = 116,
-	f6 = 117, f7 = 118, f8 = 119, f9 = 120, f10 = 121, f11 = 122,
-	f12 = 123, tilde = 192, one = 49, two = 50, three = 51, four = 52,
-	five = 53, six = 54, seven = 55, eight = 56, nine = 57, zero = 48,
-	minus = 189, equals = 187, backslash = 220, backspace = 8,
-	tab = 9, q = 81, w = 87, e = 69, r = 82, t = 84, y = 89, u = 85,
-	i = 73, o = 79, p = 80, bracket_o = 219, bracket_c = 221,
-	a = 65, s = 83, d = 68, f = 70, g = 71, h = 72, j = 74, k = 75,
-	l = 76, semicolon = 186, quotes = 222, caps = 20, enter = 13,
-	shift = 16, z = 90, x = 88, c = 67, v = 86, b = 66, n = 78,
-	m = 77, comma = 188, dot = 190, slash = 191, ctrl = 17,
-	win = 91, alt = 18, space = 32, scroll = 145, pause = 19,
-	insert = 45, home = 36, pageup = 33, pagedn = 34, delete = 46,
-	end_key = 35, uparrow = 38, leftarrow = 37, downarrow = 40, 
-	rightarrow = 39, num = 144, num_slash = 111, num_mult = 106,
-	num_sub = 109, num_7 = 103, num_8 = 104, num_9 = 105, num_plus = 107,
-	num_4 = 100, num_5 = 101, num_6 = 102, num_1 = 97, num_2 = 98,
-	num_3 = 99, num_enter = 13, num_0 = 96, num_dot = 110, mouse_1 = 1, mouse_2 = 2
+-- it's like
+-- [ normal, with shift ]
+local gs_textTable = {
+	[SenseUI.Keys.tilde] = { "`", "~" },
+	[SenseUI.Keys.one] = { "1", "!" },
+	[SenseUI.Keys.two] = { "2", "@" },
+	[SenseUI.Keys.three] = { "3", "#" },
+	[SenseUI.Keys.four] = { "4", "$" },
+	[SenseUI.Keys.five] = { "5", "%" },
+	[SenseUI.Keys.six] = { "6", "^" },
+	[SenseUI.Keys.seven] = { "7", "&" },
+	[SenseUI.Keys.eight] = { "8", "*" },
+	[SenseUI.Keys.nine] = { "9", "(" },
+	[SenseUI.Keys.zero] = { "0", ")" },
+	[SenseUI.Keys.minus] = { "-", "_" },
+	[SenseUI.Keys.equals] = { "=", "+" },
+	[SenseUI.Keys.backslash] = { "\\", "|" },
+	[SenseUI.Keys.q] = { "q", "Q" },
+	[SenseUI.Keys.w] = { "w", "W" },
+	[SenseUI.Keys.e] = { "e", "E" },
+	[SenseUI.Keys.r] = { "r", "R" },
+	[SenseUI.Keys.t] = { "t", "T" },
+	[SenseUI.Keys.y] = { "y", "Y" },
+	[SenseUI.Keys.u] = { "u", "U" },
+	[SenseUI.Keys.i] = { "i", "I" },
+	[SenseUI.Keys.o] = { "o", "O" },
+	[SenseUI.Keys.p] = { "p", "P" },
+	[SenseUI.Keys.bracket_o] = { "[", "{" },
+	[SenseUI.Keys.bracket_c] = { "]", "}" },
+	[SenseUI.Keys.a] = { "a", "A" },
+	[SenseUI.Keys.s] = { "s", "S" },
+	[SenseUI.Keys.d] = { "d", "D" },
+	[SenseUI.Keys.f] = { "f", "F" },
+	[SenseUI.Keys.g] = { "g", "G" },
+	[SenseUI.Keys.h] = { "h", "H" },
+	[SenseUI.Keys.j] = { "j", "J" },
+	[SenseUI.Keys.k] = { "k", "K" },
+	[SenseUI.Keys.l] = { "l", "L" },
+	[SenseUI.Keys.semicolon] = { ";", ":" },
+	[SenseUI.Keys.quotes] = { "'", "\"" },
+	[SenseUI.Keys.z] = { "z", "Z" },
+	[SenseUI.Keys.x] = { "x", "X" },
+	[SenseUI.Keys.c] = { "c", "C" },
+	[SenseUI.Keys.v] = { "v", "V" },
+	[SenseUI.Keys.b] = { "b", "B" },
+	[SenseUI.Keys.n] = { "n", "N" },
+	[SenseUI.Keys.m] = { "m", "M" },
+	[SenseUI.Keys.comma] = { ",", "<" },
+	[SenseUI.Keys.dot] = { ".", ">" },
+	[SenseUI.Keys.slash] = { "/", "?" },
+	[SenseUI.Keys.space] = { " ", " " }
 };
 
-SenseUI.KeyDetection = {
-	always_on = 1,
-	on_hotkey = 2,
-	toggle = 3,
-	off_hotkey = 4
-};
+local function gs_listbox( elements, maxElements, showSearch, var, searchVar, scrollVar )
+	local wnd, group = gs_newelement();
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset - 3;
 
-SenseUI.Icons = {
-	rage = { "C", 5 },
-	legit = { "D", 2 },
-	visuals = { "E", 2 },
-	settings = { "F", 3 },
-	skinchanger = { "G", 1 },
-	playerlist = { "H", 0 }
-};
+	if showSearch then
+		render.outline( x, y, 155, 20, { 5, 5, 5, wnd.alpha } );
+		render.outline( x + 1, y + 1, 153, 18, { 28, 28, 28, wnd.alpha } );
+		render.rect( x + 2, y + 2, 151, 16, { 36, 36, 36, wnd.alpha } );
+
+		gs_mx, gs_my = input.GetMousePos();
+		if input.IsButtonDown( 1 ) then
+			if gs_inbounds( gs_mx, gs_my, x, y, x + 155, y + 20 ) then
+				gs_curinput = elements[1] .. maxElements .. var .. elements[#elements];
+				gs_isBlocked = true;
+			elseif not gs_inbounds( gs_mx, gs_my, x, y, x + 155, y + 20 ) and gs_curinput == elements[1] .. maxElements .. var .. elements[#elements] then
+				gs_curinput = "";
+				gs_isBlocked = false;
+			end
+		end
+
+		if gs_curinput == elements[1] .. maxElements .. var .. elements[#elements] then
+			if input.IsButtonPressed( SenseUI.Keys.esc ) then
+				gs_curinput = "";
+				gs_isBlocked = false;
+			end
+
+			if input.IsButtonPressed( SenseUI.Keys.backspace ) then
+				searchVar = searchVar:sub( 1, -2 );
+			end
+
+			for k, v in pairs( gs_textTable ) do
+				if input.IsButtonPressed( k ) then
+					if input.IsButtonDown( SenseUI.Keys.shift ) then
+						if draw.GetTextSize( searchVar .. v[2] ) <= 135 then
+							searchVar = searchVar .. v[2];
+						end
+					else
+						if draw.GetTextSize( searchVar .. v[1] ) <= 135 then
+							searchVar = searchVar .. v[1];
+						end
+					end
+				end
+			end
+		end
+
+		if gs_curinput == elements[1] .. maxElements .. var .. elements[#elements] then
+			render.text( x + 8, y + 4, searchVar .. "_", { 181, 181, 181, wnd.alpha } );
+		else
+			render.text( x + 8, y + 4, searchVar, { 181, 181, 181, wnd.alpha } );
+		end
+
+		-- Do search thingy
+		if searchVar ~= "" then
+			local newElements = {};
+
+			for i = 1, #elements do
+				if elements[i]:sub( 1, #searchVar ) == searchVar then
+					newElements[#newElements + 1] = elements[i];
+				end
+			end
+
+			elements = newElements;
+		end
+
+		y = y + 20;
+	end
+
+	-- Prevent bugs here
+	if ( #elements - maxElements ) * 20 >= maxElements * 20 then
+		while ( #elements - maxElements ) * 20 >= maxElements * 20 do
+			maxElements = maxElements + 1;
+		end
+	end
+
+	local h = maxElements * 20;
+
+	render.outline( x, y, 155, h + 2, { 5, 5, 5, wnd.alpha } );
+	render.rect( x + 1, y + 1, 153, h, { 36, 36, 36, wnd.alpha } );
+
+	local bottomElements = 0;
+	local topElements = 0;
+	local shouldDrawScroll = false;
+
+	for i = 1, #elements do
+		local r, g, b = 181, 181, 181;
+		local font = gs_fonts.verdana_12;
+
+		local elementY = ( y + i * 20 - 19 ) - scrollVar * 20;
+		local shouldDraw = true;
+
+		if elementY > y + h then
+			shouldDraw = false;
+			bottomElements = bottomElements + 1;
+			shouldDrawScroll = true;
+		elseif elementY < y then
+			shouldDraw = false;
+			topElements = topElements + 1;
+			shouldDrawScroll = true;
+		end
+
+		if shouldDraw then
+			gs_mx, gs_my = input.GetMousePos();
+			if gs_inbounds( gs_mx, gs_my, x + 1, elementY, x + 149, elementY + 20 ) and not gs_isBlocked then
+				font = gs_fonts.verdana_12b;
+				render.rect( x + 1, elementY, 153, 20, { 28, 28, 28, wnd.alpha } );
+
+				if input.IsButtonPressed( 1 ) then
+					var = i;
+				end
+			end
+
+			if var == i then
+				r, g, b = 149, 184, 6;
+				font = gs_fonts.verdana_12b;
+
+				render.rect( x + 1, elementY, 153, 20, { 28, 28, 28, wnd.alpha } );
+			end
+
+			render.text( x + 10, elementY + 3, elements[i], { r, g, b, wnd.alpha }, font );
+		end
+	end
+
+	if shouldDrawScroll then
+		render.rect( x + 149, y + 1, 5, h, { 32, 32, 32, wnd.alpha } );
+
+		local c = 38;
+		local scrY = y + scrollVar + scrollVar * 20 + 1;
+		local scrH = ( h - ( ( #elements - maxElements ) * 20 ) ) - scrollVar;
+
+		gs_mx, gs_my = input.GetMousePos();
+		if gs_inbounds( gs_mx, gs_my, x + 149, scrY, x + 154, scrY + scrH ) and not gs_isBlocked then
+			c = 46;
+
+			if input.IsButtonDown( 1 ) then
+				c = 28;
+			end
+		end
+
+		if gs_inbounds( gs_mx, gs_my, x + 149, y, x + 154, y + h ) and input.IsButtonDown( 1 ) and not gs_isBlocked then
+			local relative_y = gs_clamp( gs_my - y, 0, h );
+			local ratio = relative_y / h + ( relative_y / h ) / 2;
+
+			scrollVar = gs_clamp( math.floor( ( #elements - maxElements ) * ratio ), 0, #elements - maxElements );
+		end
+
+		render.outline( x + 149, scrY, 5, scrH, { c, c, c, wnd.alpha } );
+		render.rect( x + 150, scrY + 1, 3, scrH - 1, { c + 8, c + 8, c + 8, wnd.alpha } );
+
+		if bottomElements ~= 0 then
+			render.rect( x + 150 - 9, y + h - 18 + 11, 5, 1, { 181, 181, 181, wnd.alpha } );
+			render.rect( x + 150 - 8, y + h - 18 + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+			render.rect( x + 150 - 7, y + h - 18 + 13, 1, 1, { 181, 181, 181, wnd.alpha } );
+		end
+
+		if topElements ~= 0 then
+			render.rect( x + 150 - 7, y - 5 + 11, 1, 1, { 181, 181, 181, wnd.alpha } );
+			render.rect( x + 150 - 8, y - 5 + 12, 3, 1, { 181, 181, 181, wnd.alpha } );
+			render.rect( x + 150 - 9, y - 5 + 13, 5, 1, { 181, 181, 181, wnd.alpha } );
+		end
+	end
+
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + h + 5;
+
+	if showSearch then
+		wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + 20;
+	end
+
+	if group.highest_w < 155 then
+		wnd.groups[gs_curgroup].highest_w = 155;
+	end
+
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
+	end
+
+	wnd.groups[gs_curgroup].last_y = y;
+
+	if showSearch then
+		wnd.groups[gs_curgroup].last_y = wnd.groups[gs_curgroup].last_y - 20;
+	end
+
+	return var, scrollVar, searchVar;
+end
+
+local function gs_textbox( id, title, var )
+	local wnd, group = gs_newelement();
+	local x, y = wnd.x + group.x + 25, wnd.y + group.y + group.nextline_offset;
+
+	if title ~= nil then
+		render.text( x, y, title, { 181, 181, 181, wnd.alpha } );
+
+		y = y + 13;
+	end
+
+	render.outline( x, y, 155, 20, { 5, 5, 5, wnd.alpha } );
+	render.outline( x + 1, y + 1, 153, 18, { 28, 28, 28, wnd.alpha } );
+	render.rect( x + 2, y + 2, 151, 16, { 36, 36, 36, wnd.alpha } );
+
+	gs_mx, gs_my = input.GetMousePos();
+	if input.IsButtonDown( 1 ) then
+		if gs_inbounds( gs_mx, gs_my, x, y, x + 155, y + 20 ) then
+			gs_curinput = id;
+			gs_isBlocked = true;
+		elseif not gs_inbounds( gs_mx, gs_my, x, y, x + 155, y + 20 ) and gs_curinput == id then
+			gs_curinput = "";
+			gs_isBlocked = false;
+		end
+	end
+
+	if gs_curinput == id then
+		if input.IsButtonPressed( SenseUI.Keys.esc ) then
+			gs_curinput = "";
+			gs_isBlocked = false;
+		end
+
+		if input.IsButtonPressed( SenseUI.Keys.backspace ) then
+			var = var:sub( 1, -2 );
+		end
+
+		for k, v in pairs( gs_textTable ) do
+			if input.IsButtonPressed( k ) then
+				if input.IsButtonDown( SenseUI.Keys.shift ) then
+					if draw.GetTextSize( var .. v[2] ) <= 135 then
+						var = var .. v[2];
+					end
+				else
+					if draw.GetTextSize( var .. v[1] ) <= 135 then
+						var = var .. v[1];
+					end
+				end
+			end
+		end
+	end
+
+	if gs_curinput == id then
+		render.text( x + 8, y + 4, var .. "_", { 181, 181, 181, wnd.alpha } );
+	else
+		render.text( x + 8, y + 4, var, { 181, 181, 181, wnd.alpha } );
+	end
+
+	wnd.groups[gs_curgroup].is_nextline = true;
+	wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + 28;
+
+	if title ~= nil then
+		wnd.groups[gs_curgroup].nextline_offset = wnd.groups[gs_curgroup].nextline_offset + 13;
+	end
+
+	if group.highest_w < 155 then
+		wnd.groups[gs_curgroup].highest_w = 155;
+	end
+
+	if group.highest_h < wnd.groups[gs_curgroup].nextline_offset then
+		wnd.groups[gs_curgroup].highest_h = wnd.groups[gs_curgroup].nextline_offset - wnd.groups[gs_curgroup].nextline_offset / 2;
+	end
+
+	wnd.groups[gs_curgroup].last_y = y;
+
+	if title ~= nil then
+		wnd.groups[gs_curgroup].last_y = wnd.groups[gs_curgroup].last_y + 13;
+	end
+
+	return var;
+end
 
 SenseUI.BeginWindow = gs_beginwindow;
 SenseUI.AddGradient = gs_addgradient;
@@ -1454,6 +1790,8 @@ SenseUI.DrawTabBar = gs_drawtabbar;
 SenseUI.EndTab = gs_endtab;
 SenseUI.Combo = gs_combo;
 SenseUI.MultiCombo = gs_multicombo;
+SenseUI.Listbox = gs_listbox;
+SenseUI.Textbox = gs_textbox;
 
 -- Let's add some useless hook here to make aimware think that script loaded
 callbacks.Register( "CreateMove", "senseui", function( cmd ) end );
